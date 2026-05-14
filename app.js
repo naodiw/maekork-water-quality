@@ -50,11 +50,27 @@ const markerColors = {
 };
 
 async function init() {
-  state.data = await fetch("data.json").then((res) => res.json());
+  const [data, rivers] = await Promise.all([
+    fetch("data.json").then((res) => res.json()),
+    fetch("rivers.geojson").then((res) => res.json()),
+  ]);
+  state.data = data;
   setupMap();
+  addRivers(rivers);
   setupFilters();
   bindEvents();
   render();
+}
+
+function addRivers(geojson) {
+  const colors = { "แม่น้ำกก": "#1478a8", "แม่น้ำแม่ลาว": "#2196a8" };
+  L.geoJSON(geojson, {
+    style: (feature) => ({
+      color: colors[feature.properties.name] || "#1478a8",
+      weight: 2.5,
+      opacity: 0.75,
+    }),
+  }).addTo(state.map);
 }
 
 function setupMap() {
