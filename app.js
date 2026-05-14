@@ -56,12 +56,14 @@ const riverColors = {
   "Kok River": "#1478a8",
   "Mae Lao River": "#2196a8",
   "Mekong River": "#0c4e7a",
+  "Ruak River": "#3a7da5",
+  "Sai River": "#5c95b4",
 };
 
 async function init() {
   const [data, rivers] = await Promise.all([
     fetch("data.json").then((res) => res.json()),
-    fetch("rivers.geojson?v=5").then((res) => res.json()).catch(() => null),
+    fetch("rivers.geojson?v=6").then((res) => res.json()).catch(() => null),
   ]);
   state.data = data;
   setupMap();
