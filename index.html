@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>แผนที่ผลตรวจวัดแม่น้ำกก</title>
+    <link rel="preconnect" href="https://unpkg.com" />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIINfQ31fQFfQZIA+5oK1QkG8M5UGcX9n9w="
+      crossorigin=""
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="map-stage">
+        <div id="map" aria-label="แผนที่จุดตรวจวัด"></div>
+        <div class="map-title">
+          <p>Mae Kok Water Quality</p>
+          <h1>แผนที่ผลตรวจวัดแม่น้ำกก</h1>
+        </div>
+        <div class="legend" aria-label="คำอธิบายสัญลักษณ์">
+          <span><i class="dot dot-pass"></i>ผ่าน</span>
+          <span><i class="dot dot-exceed"></i>เกินมาตรฐาน</span>
+          <span><i class="dot dot-reported"></i>ตามรายงานผล</span>
+        </div>
+      </section>
+
+      <aside class="control-panel" aria-label="แผงข้อมูล">
+        <header>
+          <p class="eyebrow">Dashboard</p>
+          <h2>ผลตรวจวัดทุกจุด</h2>
+          <p id="sourceNote" class="source-note"></p>
+        </header>
+
+        <section class="metrics" aria-label="ตัวเลขสรุป">
+          <article>
+            <strong id="metricSites">0</strong>
+            <span>จุดทั้งหมด</span>
+          </article>
+          <article>
+            <strong id="metricMapped">0</strong>
+            <span>มีพิกัด</span>
+          </article>
+          <article>
+            <strong id="metricExceed">0</strong>
+            <span>เกินมาตรฐาน</span>
+          </article>
+        </section>
+
+        <section class="filters" aria-label="ตัวกรอง">
+          <label>
+            ประเภทจุด
+            <select id="typeFilter">
+              <option value="all">ทั้งหมด</option>
+              <option value="factory">จุดโรงงานที่มี GPS</option>
+              <option value="water">จุดตรวจน้ำปัจจุบัน</option>
+            </select>
+          </label>
+          <label>
+            พารามิเตอร์
+            <select id="parameterFilter"></select>
+          </label>
+          <label>
+            รอบตรวจน้ำ
+            <select id="roundFilter"></select>
+          </label>
+          <label>
+            ค้นหา
+            <input id="searchInput" type="search" placeholder="รหัสจุด บริษัท หรือพื้นที่" />
+          </label>
+        </section>
+
+        <section class="selected-card" aria-live="polite">
+          <div>
+            <p class="eyebrow">Selected</p>
+            <h3 id="selectedTitle">เลือกจุดบนแผนที่หรือในรายการ</h3>
+          </div>
+          <div id="selectedBody" class="selected-body"></div>
+        </section>
+
+        <section>
+          <div class="section-heading">
+            <h3>รายการจุด</h3>
+            <span id="listCount">0 จุด</span>
+          </div>
+          <div id="siteList" class="site-list"></div>
+        </section>
+      </aside>
+    </main>
+
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+      crossorigin=""
+    ></script>
+    <script src="app.js"></script>
+  </body>
+</html>
