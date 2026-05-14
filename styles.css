@@ -276,6 +276,10 @@ input {
   font-weight: 700;
 }
 
+.leaflet-tile-loaded {
+  opacity: 1 !important;
+}
+
 @media (max-width: 980px) {
   .app-shell {
     grid-template-columns: 1fr;
