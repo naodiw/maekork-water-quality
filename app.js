@@ -147,12 +147,12 @@ function addExceedFlows(geojson) {
   for (const site of exceedSites) {
     const start = findNearestOnLines(lines, site.latitude, site.longitude);
     if (!start || start.distM > 1500) continue; // skip sites > 1.5km from any river
-    const downstream = traceDownstream(lines, start, 3500); // 3.5 km
+    const downstream = traceDownstream(lines, start, 6000); // 6 km
     if (downstream.length < 2) continue;
     L.polyline(downstream, {
       pane: "rivers",
       color: "#b83232",
-      weight: 5,
+      weight: 6,
       opacity: 1,
       dashArray: "20 36",
       lineCap: "round",
