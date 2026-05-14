@@ -6,16 +6,12 @@
     <title>แผนที่ผลตรวจวัดแม่น้ำกก</title>
     <link rel="preconnect" href="https://unpkg.com" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link rel="stylesheet" href="styles.css?v=20" />
+    <link rel="stylesheet" href="styles.css?v=21" />
   </head>
   <body>
     <main class="app-shell">
       <section class="map-stage">
         <div id="map" aria-label="แผนที่จุดตรวจวัด"></div>
-        <div class="map-title">
-          <p>Mae Kok Water Quality</p>
-          <h1>แผนที่ผลตรวจวัดแม่น้ำกก</h1>
-        </div>
         <div class="legend" aria-label="คำอธิบายสัญลักษณ์">
           <span><i class="river-swatch river-kok"></i>แม่น้ำกก</span>
           <span><i class="river-swatch river-mae-lao"></i>แม่น้ำแม่ลาว</span>
@@ -33,35 +29,14 @@
 
       <aside class="control-panel" aria-label="แผงข้อมูล">
         <header>
-          <p class="eyebrow">Dashboard</p>
-          <h2>ผลตรวจวัดทุกจุด</h2>
-          <p id="sourceNote" class="source-note"></p>
+          <p class="eyebrow">Source</p>
+          <h2>แผนที่ผลตรวจวัดแม่น้ำกก</h2>
+          <p class="source-note">
+            ข้อมูลจาก <strong>รายงานสถานการณ์คุณภาพน้ำในแม่น้ำกกและลำน้ำสาขา แม่น้ำสาย แม่น้ำรวก แม่น้ำโขง ครั้งที่ 17</strong> · กรมควบคุมมลพิษ
+          </p>
         </header>
 
-        <section class="metrics" aria-label="ตัวเลขสรุป">
-          <article>
-            <strong id="metricSites">0</strong>
-            <span>จุดทั้งหมด</span>
-          </article>
-          <article>
-            <strong id="metricMapped">0</strong>
-            <span>มีพิกัด</span>
-          </article>
-          <article>
-            <strong id="metricExceed">0</strong>
-            <span>เกินมาตรฐาน</span>
-          </article>
-        </section>
-
         <section class="filters" aria-label="ตัวกรอง">
-          <label>
-            ประเภทจุด
-            <select id="typeFilter">
-              <option value="all">ทั้งหมด</option>
-              <option value="factory">จุดโรงงานที่มี GPS</option>
-              <option value="water">จุดตรวจน้ำปัจจุบัน</option>
-            </select>
-          </label>
           <div class="round-control">
             <div class="round-header">
               <span>รอบตรวจน้ำ <strong id="roundNumber">—</strong></span>
@@ -70,10 +45,6 @@
             <input type="range" id="roundSlider" min="1" max="17" value="17" step="1" />
             <div class="round-ticks"><span>1</span><span id="roundMaxTick">17</span></div>
           </div>
-          <label>
-            ค้นหา
-            <input id="searchInput" type="search" placeholder="รหัสจุด บริษัท หรือพื้นที่" />
-          </label>
         </section>
 
         <section class="selected-card" aria-live="polite">
@@ -99,6 +70,6 @@
       integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
       crossorigin=""
     ></script>
-    <script src="app.js?v=20"></script>
+    <script src="app.js?v=21"></script>
   </body>
 </html>

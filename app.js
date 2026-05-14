@@ -20,17 +20,11 @@ const text = {
 };
 
 const els = {
-  sourceNote: document.querySelector("#sourceNote"),
-  metricSites: document.querySelector("#metricSites"),
-  metricMapped: document.querySelector("#metricMapped"),
-  metricExceed: document.querySelector("#metricExceed"),
-  typeFilter: document.querySelector("#typeFilter"),
   parameterPicker: document.querySelector("#parameterPicker"),
   roundSlider: document.querySelector("#roundSlider"),
   roundNumber: document.querySelector("#roundNumber"),
   roundDate: document.querySelector("#roundDate"),
   roundMaxTick: document.querySelector("#roundMaxTick"),
-  searchInput: document.querySelector("#searchInput"),
   selectedTitle: document.querySelector("#selectedTitle"),
   selectedBody: document.querySelector("#selectedBody"),
   siteList: document.querySelector("#siteList"),
@@ -335,7 +329,6 @@ function setupFilters() {
   renderParameterPicker(params);
 
   setupRoundSlider();
-  els.sourceNote.textContent = state.data.meta.note;
 }
 
 function setupRoundSlider() {
@@ -383,8 +376,6 @@ function renderParameterPicker(params) {
 }
 
 function bindEvents() {
-  els.typeFilter.addEventListener("change", render);
-  els.searchInput.addEventListener("input", render);
   els.roundSlider.addEventListener("input", () => {
     state.round = Number(els.roundSlider.value);
     updateRoundLabel();
@@ -395,7 +386,6 @@ function bindEvents() {
 function render() {
   clearMarkers();
   const sites = getFilteredSites();
-  renderMetrics();
   renderMarkers(sites);
   renderList(sites);
   updateExceedFlows();
@@ -407,43 +397,14 @@ function render() {
 }
 
 function getFilteredSites() {
-  const type = els.typeFilter.value;
-  const query = els.searchInput.value.trim().toLowerCase();
   const sites = [];
-
-  if (type === "all" || type === "factory") {
-    for (const site of state.data.factorySites) {
-      const record = { type: "factory", ...site };
-      if (matchesQuery(record, query)) sites.push(record);
-    }
+  for (const site of state.data.factorySites) {
+    sites.push({ type: "factory", ...site });
   }
-
-  if (type === "all" || type === "water") {
-    for (const site of state.data.waterPoints) {
-      const record = { type: "water", ...site };
-      if (matchesQuery(record, query)) sites.push(record);
-    }
+  for (const site of state.data.waterPoints) {
+    sites.push({ type: "water", ...site });
   }
-
   return sites;
-}
-
-function matchesQuery(site, query) {
-  if (!query) return true;
-  const haystack = [site.id, site.company, site.river, site.location, site.province, site.samplePoint]
-    .filter(Boolean)
-    .join(" ")
-    .toLowerCase();
-  return haystack.includes(query);
-}
-
-function renderMetrics() {
-  const totalSites = state.data.waterPoints.length + state.data.factorySites.length;
-  const mappedSites = state.data.factorySites.length + state.data.waterPoints.filter((p) => p.latitude).length;
-  const exceed = getCurrentWaterRows().filter((r) => r.exceedsStandard).length;
-  els.metricSites.textContent = totalSites.toLocaleString("th-TH");
-  els.metricMapped.textContent = mappedSites.toLocaleString("th-TH");
-  els.metricExceed.textContent = exceed.toLocaleString("th-TH");
 }
 
 function renderMarkers(sites) {
