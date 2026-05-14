@@ -404,9 +404,11 @@ function render() {
   renderMarkers(sites);
   renderList(sites);
   updateExceedFlows();
-  const selectedStillVisible =
-    state.selected && sites.some((site) => site.type === state.selected.type && site.id === state.selected.id);
-  if ((!state.selected || !selectedStillVisible) && sites.length) {
+  const stillVisible =
+    state.selected && sites.find((s) => s.type === state.selected.type && s.id === state.selected.id);
+  if (stillVisible) {
+    selectSite(stillVisible, false);
+  } else if (sites.length) {
     selectSite(sites[0], false);
   }
 }
