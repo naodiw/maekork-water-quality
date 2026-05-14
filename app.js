@@ -53,11 +53,11 @@ const markerColors = {
 };
 
 const riverColors = {
-  "Kok River": "#1478a8",
-  "Mae Lao River": "#2196a8",
-  "Mekong River": "#0c4e7a",
-  "Ruak River": "#3a7da5",
-  "Sai River": "#5c95b4",
+  "Kok River": "#2563eb",      // blue
+  "Mae Lao River": "#0d9488",  // teal
+  "Mekong River": "#1e3a8a",   // navy (largest river)
+  "Ruak River": "#7c3aed",     // violet
+  "Sai River": "#0891b2",      // cyan
 };
 
 async function init() {
@@ -424,13 +424,19 @@ function renderMarkers(sites) {
   for (const site of sites) {
     if (!site.latitude || !site.longitude) continue;
     const status = getSiteMarkerStatus(site);
-    const marker = L.circleMarker([site.latitude, site.longitude], {
-      radius: site.type === "water" ? 8 : 9,
-      color: "#ffffff",
-      weight: 2,
-      fillColor: markerColors[status] || markerColors.reported,
-      fillOpacity: 0.92,
-    });
+    const color = markerColors[status] || markerColors.reported;
+    let marker;
+    if (site.type === "factory") {
+      marker = L.marker([site.latitude, site.longitude], { icon: factoryIcon(color) });
+    } else {
+      marker = L.circleMarker([site.latitude, site.longitude], {
+        radius: 8,
+        color: "#ffffff",
+        weight: 2,
+        fillColor: color,
+        fillOpacity: 0.92,
+      });
+    }
     marker.bindPopup(buildPopup(site));
     marker.on("click", () => selectSite(site, false));
     marker.addTo(state.map);
@@ -441,6 +447,17 @@ function renderMarkers(sites) {
     state.map.invalidateSize();
     state.map.fitBounds(bounds, { padding: [44, 44], maxZoom: 11, animate: false });
   }
+}
+
+function factoryIcon(color) {
+  // Factory silhouette with 2 buildings + chimney
+  return L.divIcon({
+    className: "factory-icon",
+    html: `<span class="factory-marker" style="--c:${color}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21V11l5 3V11l5 3V8l5 3V5h2v16H3z"/><rect x="5" y="16" width="2" height="3"/><rect x="10" y="16" width="2" height="3"/><rect x="15" y="16" width="2" height="3"/></svg></span>`,
+    iconSize: [28, 28],
+    iconAnchor: [14, 14],
+    popupAnchor: [0, -12],
+  });
 }
 
 function clearMarkers() {
