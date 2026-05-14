@@ -81,12 +81,16 @@ function setupMap() {
 }
 
 function addRivers(geojson) {
+  setupRiverPane();
+  const paneOpt = { pane: "rivers" };
+
   // Layer 1 — wide halo for soft glow around the river
   L.geoJSON(geojson, {
+    ...paneOpt,
     style: (feature) => ({
       color: getRiverColor(feature),
-      weight: 8,
-      opacity: 0.16,
+      weight: 16,
+      opacity: 0.12,
       lineCap: "round",
       lineJoin: "round",
     }),
@@ -94,30 +98,170 @@ function addRivers(geojson) {
 
   // Layer 2 — main river body (semi-transparent solid line)
   L.geoJSON(geojson, {
+    ...paneOpt,
     style: (feature) => ({
       color: getRiverColor(feature),
-      weight: 3.5,
-      opacity: 0.5,
+      weight: 7,
+      opacity: 0.4,
       lineCap: "round",
       lineJoin: "round",
     }),
   }).addTo(state.map);
 
-  // Layer 3 — animated flow dashes on top (direction follows OSM way)
+  // Layer 3 — animated blue flow dashes on top of body
   L.geoJSON(geojson, {
+    ...paneOpt,
     style: (feature) => ({
       color: getRiverColor(feature),
-      weight: 2.5,
+      weight: 5,
       opacity: 1,
-      dashArray: "10 18",
+      dashArray: "20 36",
       lineCap: "round",
       className: "river-flow-line",
     }),
   }).addTo(state.map);
+
+  // Layer 4 — red animated flow downstream from each exceed-standard site
+  addExceedFlows(geojson);
+}
+
+function setupRiverPane() {
+  if (!state.map.getPane("rivers")) {
+    state.map.createPane("rivers");
+    state.map.getPane("rivers").style.zIndex = 350;
+  }
 }
 
 function getRiverColor(feature) {
   return riverColors[feature.properties.name_en] || "#1478a8";
+}
+
+// ----- Red exceed flows -----
+
+function addExceedFlows(geojson) {
+  const exceedSites = getExceedSites();
+  if (!exceedSites.length) return;
+  const lines = collectRiverLines(geojson);
+  if (!lines.length) return;
+
+  for (const site of exceedSites) {
+    const start = findNearestOnLines(lines, site.latitude, site.longitude);
+    if (!start || start.distM > 1500) continue; // skip sites > 1.5km from any river
+    const downstream = traceDownstream(lines, start, 3500); // 3.5 km
+    if (downstream.length < 2) continue;
+    L.polyline(downstream, {
+      pane: "rivers",
+      color: "#b83232",
+      weight: 5,
+      opacity: 1,
+      dashArray: "20 36",
+      lineCap: "round",
+      className: "river-flow-line river-flow-exceed",
+    }).addTo(state.map);
+  }
+}
+
+function getExceedSites() {
+  const sites = [];
+  // Water points that exceed in their latest round
+  const latestByPoint = {};
+  for (const r of state.data.waterResults) {
+    if (r.status !== "exceed") continue;
+    if (!latestByPoint[r.siteId] || r.round > latestByPoint[r.siteId]) {
+      latestByPoint[r.siteId] = r.round;
+    }
+  }
+  for (const point of state.data.waterPoints) {
+    if (latestByPoint[point.id] && point.latitude && point.longitude) {
+      sites.push({ latitude: point.latitude, longitude: point.longitude });
+    }
+  }
+  // Factory sites flagged as fail
+  for (const site of state.data.factorySites) {
+    if (site.overallStatus === "fail" && site.latitude && site.longitude) {
+      sites.push({ latitude: site.latitude, longitude: site.longitude });
+    }
+  }
+  return sites;
+}
+
+function collectRiverLines(geojson) {
+  const lines = [];
+  for (const feature of geojson.features) {
+    const geom = feature.geometry;
+    const segments = geom.type === "MultiLineString" ? geom.coordinates : [geom.coordinates];
+    for (const segment of segments) {
+      lines.push(segment.map(([lng, lat]) => [lat, lng]));
+    }
+  }
+  return lines;
+}
+
+// Haversine distance in meters
+function haversineM(aLat, aLng, bLat, bLng) {
+  const R = 6371000;
+  const toRad = (d) => (d * Math.PI) / 180;
+  const dLat = toRad(bLat - aLat);
+  const dLng = toRad(bLng - aLng);
+  const x =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(aLat)) * Math.cos(toRad(bLat)) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(x));
+}
+
+function projectOnSegment(lat, lng, a, b) {
+  // Approximate using local equirectangular projection
+  const toRad = (d) => (d * Math.PI) / 180;
+  const cosLat = Math.cos(toRad((a[0] + b[0]) / 2));
+  const ax = a[1] * cosLat, ay = a[0];
+  const bx = b[1] * cosLat, by = b[0];
+  const px = lng * cosLat, py = lat;
+  const dx = bx - ax, dy = by - ay;
+  const len2 = dx * dx + dy * dy;
+  let t = len2 === 0 ? 0 : ((px - ax) * dx + (py - ay) * dy) / len2;
+  t = Math.max(0, Math.min(1, t));
+  const projLat = a[0] + (b[0] - a[0]) * t;
+  const projLng = a[1] + (b[1] - a[1]) * t;
+  return { t, lat: projLat, lng: projLng };
+}
+
+function findNearestOnLines(lines, lat, lng) {
+  let best = null;
+  for (let li = 0; li < lines.length; li++) {
+    const line = lines[li];
+    for (let pi = 1; pi < line.length; pi++) {
+      const a = line[pi - 1];
+      const b = line[pi];
+      const proj = projectOnSegment(lat, lng, a, b);
+      const d = haversineM(lat, lng, proj.lat, proj.lng);
+      if (!best || d < best.distM) {
+        best = { distM: d, lineIndex: li, segmentEnd: pi, point: [proj.lat, proj.lng] };
+      }
+    }
+  }
+  return best;
+}
+
+function traceDownstream(lines, start, distanceM) {
+  const line = lines[start.lineIndex];
+  const out = [start.point];
+  let remaining = distanceM;
+  let idx = start.segmentEnd;
+  while (idx < line.length && remaining > 0) {
+    const last = out[out.length - 1];
+    const next = line[idx];
+    const d = haversineM(last[0], last[1], next[0], next[1]);
+    if (d <= remaining) {
+      out.push(next);
+      remaining -= d;
+      idx++;
+    } else {
+      const t = remaining / d;
+      out.push([last[0] + (next[0] - last[0]) * t, last[1] + (next[1] - last[1]) * t]);
+      remaining = 0;
+    }
+  }
+  return out;
 }
 
 function setupFilters() {
