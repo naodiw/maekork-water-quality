@@ -47,14 +47,13 @@ body {
 
 .parameter-bar {
   top: 24px;
-  left: 50%;
-  transform: translateX(-50%);
+  right: 24px;
   display: flex;
   align-items: center;
   gap: 14px;
   padding: 10px 14px;
   border-radius: 12px;
-  max-width: calc(100% - 520px);
+  max-width: min(700px, calc(100% - 500px));
 }
 
 .parameter-label {
