@@ -522,21 +522,24 @@ function renderFactorySelection(site) {
 }
 
 function renderWaterSelection(site) {
-  const param = state.parameter;
   const round = getSelectedRoundForSite(site.id);
   const roundInfo = state.data.samplingRounds.find((r) => r.round === round);
   const dateLabel = roundInfo?.dateLabel || "";
-  let rows = state.data.waterResults.filter((r) => r.siteId === site.id && r.round === round);
-  if (param !== text.all) rows = rows.filter((r) => r.parameter === param);
+  // Show ALL parameters for this site in this round (not just the selected filter)
+  const rows = state.data.waterResults.filter(
+    (r) => r.siteId === site.id && r.round === round
+  );
   els.selectedTitle.textContent = `${site.id} ${site.river}`;
   els.selectedBody.innerHTML = `
     <p>${escapeHtml(site.location)}</p>
     <p>${text.coordinate} ${Number(site.latitude).toFixed(6)}, ${Number(site.longitude).toFixed(6)}</p>
     <p>${text.round} ${round}${dateLabel ? ` · วันเก็บตัวอย่าง ${escapeHtml(dateLabel)}` : ""}</p>
     <div class="result-grid">
-      ${rows
-        .map((r) => `<span>${escapeHtml(r.parameter)}</span><strong>${escapeHtml(r.raw || "-")} ${escapeHtml(r.unit || "")} ${statusPillHtml(r.status)}</strong>`)
-        .join("")}
+      ${rows.length
+        ? rows
+            .map((r) => `<span>${escapeHtml(r.parameter)}</span><strong>${escapeHtml(r.raw || "-")} ${escapeHtml(r.unit || "")} ${statusPillHtml(r.status)}</strong>`)
+            .join("")
+        : `<span>ไม่มีข้อมูลในรอบนี้</span><strong>-</strong>`}
     </div>
   `;
 }
