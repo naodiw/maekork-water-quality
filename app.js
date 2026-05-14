@@ -176,6 +176,7 @@ function renderMarkers(sites) {
     bounds.push([site.latitude, site.longitude]);
   }
   if (bounds.length) {
+    state.map.invalidateSize();
     state.map.fitBounds(bounds, { padding: [44, 44], maxZoom: 11, animate: false });
   }
 }
