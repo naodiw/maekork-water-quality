@@ -74,7 +74,7 @@ function addRivers(geojson) {
 }
 
 function setupMap() {
-  state.map = L.map("map", { zoomControl: false, fadeAnimation: false, zoomAnimation: false });
+  state.map = L.map("map", { zoomControl: false, fadeAnimation: false, zoomAnimation: false }).setView([20.05, 99.85], 9);
   L.control.zoom({ position: "bottomright" }).addTo(state.map);
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     maxZoom: 19,
