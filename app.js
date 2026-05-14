@@ -33,13 +33,28 @@ const els = {
 
 const statusText = {
   pass: "\u0e1c\u0e48\u0e32\u0e19",
-  reported: "\u0e15\u0e32\u0e21\u0e23\u0e32\u0e22\u0e07\u0e32\u0e19\u0e1c\u0e25",
+  reported: "",
   fail: "\u0e44\u0e21\u0e48\u0e1c\u0e48\u0e32\u0e19",
   exceed: "\u0e40\u0e01\u0e34\u0e19\u0e21\u0e32\u0e15\u0e23\u0e10\u0e32\u0e19",
   no_standard: "\u0e44\u0e21\u0e48\u0e21\u0e35\u0e04\u0e48\u0e32\u0e21\u0e32\u0e15\u0e23\u0e10\u0e32\u0e19",
   no_data: "\u0e44\u0e21\u0e48\u0e21\u0e35\u0e02\u0e49\u0e2d\u0e21\u0e39\u0e25",
   standard_not_available: "\u0e44\u0e21\u0e48\u0e21\u0e35\u0e04\u0e48\u0e32\u0e21\u0e32\u0e15\u0e23\u0e10\u0e32\u0e19",
 };
+
+const thaiMonths = ["\u0e21.\u0e04.","\u0e01.\u0e1e.","\u0e21\u0e35.\u0e04.","\u0e40\u0e21.\u0e22.","\u0e1e.\u0e04.","\u0e21\u0e34.\u0e22.","\u0e01.\u0e04.","\u0e2a.\u0e04.","\u0e01.\u0e22.","\u0e15.\u0e04.","\u0e1e.\u0e22.","\u0e18.\u0e04."];
+
+function parseFactoryDate(siteId) {
+  const m = String(siteId || "").match(/^\d+-(\d{4})(\d{2})(\d{2})-/);
+  if (!m) return "";
+  const [, y, mo, d] = m;
+  return `${parseInt(d, 10)} ${thaiMonths[parseInt(mo, 10) - 1]} ${y.slice(-2)}`;
+}
+
+function statusPillHtml(status) {
+  const label = statusText[status];
+  if (!label) return "";
+  return `<em class="status-pill status-${escapeHtml(status)}">${escapeHtml(label)}</em>`;
+}
 
 const markerColors = {
   pass: "#1f7a5a",
@@ -458,10 +473,9 @@ function renderList(sites) {
   els.siteList.innerHTML = sites
     .map((site, index) => {
       const title = site.type === "factory" ? site.company : `${site.id} ${site.river}`;
-      const detail =
-        site.type === "factory"
-          ? `${site.samplePoint} · ${statusText[getSiteMarkerStatus(site)] || statusText.reported}`
-          : `${site.location} · ${statusText[getSiteMarkerStatus(site)] || statusText.reported}`;
+      const status = statusText[getSiteMarkerStatus(site)] || "";
+      const base = site.type === "factory" ? site.samplePoint : site.location;
+      const detail = status ? `${base} · ${status}` : base;
       return `<button class="site-item" type="button" data-index="${index}">
         <strong>${escapeHtml(title)}</strong>
         <span>${escapeHtml(detail)}</span>
@@ -494,12 +508,14 @@ function renderFactorySelection(site) {
     .filter((r) => r.siteId === site.id)
     .map((r) => {
       const status = normalizeFactoryStatus(r.complianceStatus);
-      return `<span>${escapeHtml(r.parameter)}</span><strong>${escapeHtml(r.resultText || "-")} <em class="status-pill status-${escapeHtml(status)}">${escapeHtml(statusText[status] || statusText.reported)}</em></strong>`;
+      return `<span>${escapeHtml(r.parameter)}</span><strong>${escapeHtml(r.resultText || "-")} ${statusPillHtml(status)}</strong>`;
     })
     .join("");
+  const sampleDate = parseFactoryDate(site.id);
   els.selectedTitle.textContent = site.company;
   els.selectedBody.innerHTML = `
     <p>${escapeHtml(site.samplePoint)}</p>
+    ${sampleDate ? `<p>วันรับตัวอย่าง ${escapeHtml(sampleDate)}</p>` : ""}
     <p>${text.coordinate} ${site.latitude.toFixed(6)}, ${site.longitude.toFixed(6)}</p>
     <div class="result-grid">${rows}</div>
   `;
@@ -508,30 +524,41 @@ function renderFactorySelection(site) {
 function renderWaterSelection(site) {
   const param = state.parameter;
   const round = getSelectedRoundForSite(site.id);
+  const roundInfo = state.data.samplingRounds.find((r) => r.round === round);
+  const dateLabel = roundInfo?.dateLabel || "";
   let rows = state.data.waterResults.filter((r) => r.siteId === site.id && r.round === round);
   if (param !== text.all) rows = rows.filter((r) => r.parameter === param);
   els.selectedTitle.textContent = `${site.id} ${site.river}`;
   els.selectedBody.innerHTML = `
     <p>${escapeHtml(site.location)}</p>
     <p>${text.coordinate} ${Number(site.latitude).toFixed(6)}, ${Number(site.longitude).toFixed(6)}</p>
-    <p>${text.round} ${round}</p>
+    <p>${text.round} ${round}${dateLabel ? ` · วันเก็บตัวอย่าง ${escapeHtml(dateLabel)}` : ""}</p>
     <div class="result-grid">
       ${rows
-        .map((r) => `<span>${escapeHtml(r.parameter)}</span><strong>${escapeHtml(r.raw || "-")} ${escapeHtml(r.unit || "")} <em class="status-pill status-${escapeHtml(r.status)}">${escapeHtml(statusText[r.status] || r.status)}</em></strong>`)
+        .map((r) => `<span>${escapeHtml(r.parameter)}</span><strong>${escapeHtml(r.raw || "-")} ${escapeHtml(r.unit || "")} ${statusPillHtml(r.status)}</strong>`)
         .join("")}
     </div>
   `;
 }
 
 function buildPopup(site) {
+  const status = statusText[getSiteMarkerStatus(site)] || "";
+  const statusLine = status ? `<p>${escapeHtml(status)}</p>` : "";
   if (site.type === "factory") {
+    const sampleDate = parseFactoryDate(site.id);
+    const dateLine = sampleDate ? `<p>วันรับตัวอย่าง ${escapeHtml(sampleDate)}</p>` : "";
     return `<p class="popup-title">${escapeHtml(site.company)}</p>
       <p>${escapeHtml(site.samplePoint)}</p>
-      <p>${escapeHtml(statusText[getSiteMarkerStatus(site)] || statusText.reported)}</p>`;
+      ${dateLine}
+      ${statusLine}`;
   }
+  const round = getSelectedRoundForSite(site.id);
+  const roundInfo = state.data.samplingRounds.find((r) => r.round === round);
+  const dateLine = roundInfo?.dateLabel ? `<p>วันเก็บตัวอย่าง ${escapeHtml(roundInfo.dateLabel)}</p>` : "";
   return `<p class="popup-title">${escapeHtml(site.id)} ${escapeHtml(site.river)}</p>
     <p>${escapeHtml(site.location)}</p>
-    <p>${escapeHtml(statusText[getSiteMarkerStatus(site)] || statusText.reported)}</p>`;
+    ${dateLine}
+    ${statusLine}`;
 }
 
 function getCurrentWaterRows() {
