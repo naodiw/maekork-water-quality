@@ -192,17 +192,15 @@ function updateExceedFlows() {
   }
 }
 
-// Status of a water point for currently selected parameter
+// Status of a water point for currently selected parameter + round
 function getWaterStatusForParam(siteId) {
   const param = state.parameter;
-  const allRows = state.data.waterResults.filter((r) => r.siteId === siteId);
-  const rows =
-    param === text.all ? allRows : allRows.filter((r) => r.parameter === param);
+  const round = getSelectedRoundForSite(siteId);
+  let rows = state.data.waterResults.filter((r) => r.siteId === siteId && r.round === round);
+  if (param !== text.all) rows = rows.filter((r) => r.parameter === param);
   if (!rows.length) return "no_data";
-  const latestRound = Math.max(...rows.map((r) => r.round));
-  const latest = rows.filter((r) => r.round === latestRound);
-  if (latest.some((r) => r.status === "exceed")) return "exceed";
-  if (latest.some((r) => r.status === "pass")) return "pass";
+  if (rows.some((r) => r.status === "exceed")) return "exceed";
+  if (rows.some((r) => r.status === "pass")) return "pass";
   return "no_data";
 }
 
