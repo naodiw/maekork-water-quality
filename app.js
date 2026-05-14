@@ -58,7 +58,7 @@ async function init() {
 }
 
 function setupMap() {
-  state.map = L.map("map", { zoomControl: false, fadeAnimation: false, zoomAnimation: false }).setView([20.05, 99.85], 9);
+  state.map = L.map("map", { zoomControl: false, fadeAnimation: false, zoomAnimation: false });
   L.control.zoom({ position: "bottomright" }).addTo(state.map);
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     maxZoom: 19,
@@ -156,7 +156,7 @@ function renderMarkers(sites) {
     bounds.push([site.latitude, site.longitude]);
   }
   if (bounds.length) {
-    state.map.fitBounds(bounds, { padding: [44, 44], maxZoom: 11 });
+    state.map.fitBounds(bounds, { padding: [44, 44], maxZoom: 11, animate: false });
   }
 }
 
