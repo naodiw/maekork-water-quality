@@ -319,12 +319,13 @@ function traceDownstreamDist(line, startProj, distanceM) {
 }
 
 function setupFilters() {
-  const waterParams = new Set(state.data.waterResults.map((r) => r.parameter));
-  const factoryParams = new Set(state.data.factoryResults.map((r) => r.parameter));
-  // Put "สารหนู" first, then other heavy metals sorted, then "ทั้งหมด" last
-  const all = Array.from(new Set([...waterParams, ...factoryParams])).sort();
+  // Only show parameters that have at least one exceed result in the river data
+  const exceededInWater = new Set(
+    state.data.waterResults.filter((r) => r.status === "exceed").map((r) => r.parameter)
+  );
+  const sorted = Array.from(exceededInWater).sort();
   const preferred = "สารหนู";
-  const others = all.filter((p) => p !== preferred);
+  const others = sorted.filter((p) => p !== preferred);
   const params = [preferred, ...others, text.all];
   if (!params.includes(state.parameter)) state.parameter = preferred;
   renderParameterPicker(params);
