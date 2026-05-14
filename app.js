@@ -4,6 +4,7 @@ const state = {
   layers: [],
   selected: null,
   parameter: "สารหนู",
+  round: null,
   riversGeojson: null,
   exceedFlows: [],
 };
@@ -25,7 +26,10 @@ const els = {
   metricExceed: document.querySelector("#metricExceed"),
   typeFilter: document.querySelector("#typeFilter"),
   parameterPicker: document.querySelector("#parameterPicker"),
-  roundFilter: document.querySelector("#roundFilter"),
+  roundSlider: document.querySelector("#roundSlider"),
+  roundNumber: document.querySelector("#roundNumber"),
+  roundDate: document.querySelector("#roundDate"),
+  roundMaxTick: document.querySelector("#roundMaxTick"),
   searchInput: document.querySelector("#searchInput"),
   selectedTitle: document.querySelector("#selectedTitle"),
   selectedBody: document.querySelector("#selectedBody"),
@@ -330,9 +334,30 @@ function setupFilters() {
   if (!params.includes(state.parameter)) state.parameter = preferred;
   renderParameterPicker(params);
 
-  const rounds = [text.latest, ...state.data.samplingRounds.map((r) => String(r.round))];
-  els.roundFilter.innerHTML = rounds.map((round) => optionHtml(round)).join("");
+  setupRoundSlider();
   els.sourceNote.textContent = state.data.meta.note;
+}
+
+function setupRoundSlider() {
+  const rounds = state.data.samplingRounds.map((r) => r.round);
+  const minR = Math.min(...rounds);
+  const maxR = Math.max(...rounds);
+  els.roundSlider.min = String(minR);
+  els.roundSlider.max = String(maxR);
+  els.roundMaxTick.textContent = String(maxR);
+  if (!state.round) state.round = maxR;
+  els.roundSlider.value = String(state.round);
+  updateRoundLabel();
+}
+
+function updateRoundLabel() {
+  els.roundNumber.textContent = String(state.round);
+  const info = state.data.samplingRounds.find((r) => r.round === state.round);
+  els.roundDate.textContent = info?.dateLabel || "—";
+  const min = Number(els.roundSlider.min);
+  const max = Number(els.roundSlider.max);
+  const pct = ((state.round - min) / Math.max(1, max - min)) * 100;
+  els.roundSlider.style.setProperty("--slider-pct", `${pct}%`);
 }
 
 function renderParameterPicker(params) {
@@ -358,10 +383,13 @@ function renderParameterPicker(params) {
 }
 
 function bindEvents() {
-  [els.typeFilter, els.roundFilter].forEach((el) => {
-    el.addEventListener("change", render);
-  });
+  els.typeFilter.addEventListener("change", render);
   els.searchInput.addEventListener("input", render);
+  els.roundSlider.addEventListener("input", () => {
+    state.round = Number(els.roundSlider.value);
+    updateRoundLabel();
+    render();
+  });
 }
 
 function render() {
@@ -553,11 +581,8 @@ function getCurrentWaterRows() {
   });
 }
 
-function getSelectedRoundForSite(siteId) {
-  const selectedRound = els.roundFilter.value;
-  if (selectedRound !== text.latest) return Number(selectedRound);
-  const rounds = state.data.waterResults.filter((r) => r.siteId === siteId).map((r) => r.round);
-  return Math.max(...rounds);
+function getSelectedRoundForSite(_siteId) {
+  return state.round;
 }
 
 function getSiteMarkerStatus(site) {

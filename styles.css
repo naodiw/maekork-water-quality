@@ -269,6 +269,78 @@ input {
   padding: 8px 10px;
 }
 
+.round-control {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.round-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.round-header strong {
+  color: var(--river);
+  font-size: 1.05rem;
+  margin-left: 4px;
+}
+
+.round-date {
+  font-weight: 500;
+  color: var(--ink);
+  font-size: 0.84rem;
+  text-align: right;
+}
+
+#roundSlider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  background: linear-gradient(to right, var(--river) 0%, var(--river) var(--slider-pct, 100%), var(--line) var(--slider-pct, 100%), var(--line) 100%);
+  outline: none;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  margin: 4px 0;
+}
+
+#roundSlider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  border: 3px solid var(--river);
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(20, 120, 168, 0.3);
+}
+
+#roundSlider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  border: 3px solid var(--river);
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(20, 120, 168, 0.3);
+}
+
+.round-ticks {
+  display: flex;
+  justify-content: space-between;
+  color: var(--muted);
+  font-size: 0.74rem;
+}
+
 .selected-card {
   border: 1px solid var(--line);
   border-radius: 8px;

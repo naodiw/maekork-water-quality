@@ -6,7 +6,7 @@
     <title>แผนที่ผลตรวจวัดแม่น้ำกก</title>
     <link rel="preconnect" href="https://unpkg.com" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link rel="stylesheet" href="styles.css?v=17" />
+    <link rel="stylesheet" href="styles.css?v=20" />
   </head>
   <body>
     <main class="app-shell">
@@ -62,10 +62,14 @@
               <option value="water">จุดตรวจน้ำปัจจุบัน</option>
             </select>
           </label>
-          <label>
-            รอบตรวจน้ำ
-            <select id="roundFilter"></select>
-          </label>
+          <div class="round-control">
+            <div class="round-header">
+              <span>รอบตรวจน้ำ <strong id="roundNumber">—</strong></span>
+              <span id="roundDate" class="round-date">—</span>
+            </div>
+            <input type="range" id="roundSlider" min="1" max="17" value="17" step="1" />
+            <div class="round-ticks"><span>1</span><span id="roundMaxTick">17</span></div>
+          </div>
           <label>
             ค้นหา
             <input id="searchInput" type="search" placeholder="รหัสจุด บริษัท หรือพื้นที่" />
@@ -95,6 +99,6 @@
       integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
       crossorigin=""
     ></script>
-    <script src="app.js?v=19"></script>
+    <script src="app.js?v=20"></script>
   </body>
 </html>
