@@ -2,6 +2,7 @@ const state = {
   data: null,
   map: null,
   layers: [],
+  riverArrows: [],
   selected: null,
 };
 
@@ -49,10 +50,15 @@ const markerColors = {
   no_data: "#697386",
 };
 
+const riverColors = {
+  "Kok River": "#1478a8",
+  "Mae Lao River": "#2196a8",
+};
+
 async function init() {
   const [data, rivers] = await Promise.all([
     fetch("data.json").then((res) => res.json()),
-    fetch("rivers.geojson?v=2").then((res) => res.json()).catch(() => null),
+    fetch("rivers.geojson?v=3").then((res) => res.json()).catch(() => null),
   ]);
   state.data = data;
   setupMap();
@@ -66,7 +72,7 @@ async function init() {
   }
 }
 
-function addRivers(geojson) {
+function addRiversLegacy(geojson) {
   const colors = { "แม่น้ำกก": "#1478a8", "แม่น้ำแม่ลาว": "#2196a8" };
   L.geoJSON(geojson, {
     style: (feature) => ({
@@ -84,6 +90,87 @@ function setupMap() {
     maxZoom: 19,
     attribution: "&copy; OpenStreetMap contributors",
   }).addTo(state.map);
+}
+
+function addRivers(geojson) {
+  setupRiverArrowPane();
+  L.geoJSON(geojson, {
+    style: (feature) => ({
+      color: getRiverColor(feature),
+      weight: 3,
+      opacity: 0.82,
+    }),
+  }).addTo(state.map);
+  addRiverArrows(geojson);
+  state.map.on("zoomend", () => addRiverArrows(geojson));
+}
+
+function setupRiverArrowPane() {
+  if (!state.map.getPane("riverArrows")) {
+    state.map.createPane("riverArrows");
+    state.map.getPane("riverArrows").style.zIndex = 450;
+    state.map.getPane("riverArrows").style.pointerEvents = "none";
+  }
+}
+
+function getRiverColor(feature) {
+  return riverColors[feature.properties.name_en] || "#1478a8";
+}
+
+function addRiverArrows(geojson) {
+  clearRiverArrows();
+  const spacing = 120;
+  const minSegmentLength = 80;
+  for (const feature of geojson.features) {
+    const color = getRiverColor(feature);
+    const lines =
+      feature.geometry.type === "MultiLineString" ? feature.geometry.coordinates : [feature.geometry.coordinates];
+    for (const line of lines) addArrowsForLine(line, color, spacing, minSegmentLength);
+  }
+}
+
+function addArrowsForLine(line, color, spacing, minSegmentLength) {
+  const points = line.map(([lng, lat]) => state.map.latLngToLayerPoint([lat, lng]));
+  let total = 0;
+  for (let index = 1; index < points.length; index++) total += points[index - 1].distanceTo(points[index]);
+  if (total < minSegmentLength) return;
+
+  let nextAt = spacing * 0.65;
+  let traversed = 0;
+  for (let index = 1; index < points.length && nextAt < total; index++) {
+    const start = points[index - 1];
+    const end = points[index];
+    const distance = start.distanceTo(end);
+    while (distance > 0 && traversed + distance >= nextAt) {
+      const ratio = (nextAt - traversed) / distance;
+      const x = start.x + (end.x - start.x) * ratio;
+      const y = start.y + (end.y - start.y) * ratio;
+      const latLng = state.map.layerPointToLatLng([x, y]);
+      const angle = (Math.atan2(end.y - start.y, end.x - start.x) * 180) / Math.PI;
+      const marker = L.marker(latLng, {
+        icon: riverArrowIcon(color, angle),
+        interactive: false,
+        pane: "riverArrows",
+      }).addTo(state.map);
+      state.riverArrows.push(marker);
+      nextAt += spacing;
+    }
+    traversed += distance;
+  }
+}
+
+function clearRiverArrows() {
+  for (const arrow of state.riverArrows) arrow.remove();
+  state.riverArrows = [];
+}
+
+function riverArrowIcon(color, angle) {
+  return L.divIcon({
+    className: "river-flow-arrow",
+    html: `<svg viewBox="0 0 28 28" style="--arrow-rotate:${angle}deg" aria-hidden="true"><path fill="${color}" d="M3 11h13V6l9 8-9 8v-5H3z"></path></svg>`,
+    iconSize: [28, 28],
+    iconAnchor: [14, 14],
+  });
 }
 
 function setupFilters() {
