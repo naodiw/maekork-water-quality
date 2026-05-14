@@ -59,7 +59,11 @@ async function init() {
   setupFilters();
   bindEvents();
   render();
-  if (rivers) state.map.whenReady(() => addRivers(rivers));
+  if (rivers) {
+    setTimeout(() => {
+      try { addRivers(rivers); } catch (e) { console.error("addRivers failed:", e); }
+    }, 100);
+  }
 }
 
 function addRivers(geojson) {
