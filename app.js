@@ -64,6 +64,7 @@ function setupMap() {
     maxZoom: 19,
     attribution: "&copy; OpenStreetMap contributors",
   }).addTo(state.map);
+  setTimeout(() => state.map.invalidateSize(), 0);
 }
 
 function setupFilters() {
