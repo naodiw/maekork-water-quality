@@ -52,7 +52,7 @@ const markerColors = {
 async function init() {
   const [data, rivers] = await Promise.all([
     fetch("data.json").then((res) => res.json()),
-    fetch("rivers.geojson").then((res) => res.json()).catch(() => null),
+    fetch("rivers.geojson?v=2").then((res) => res.json()).catch(() => null),
   ]);
   state.data = data;
   setupMap();
