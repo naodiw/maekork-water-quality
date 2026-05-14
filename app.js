@@ -56,10 +56,10 @@ async function init() {
   ]);
   state.data = data;
   setupMap();
-  if (rivers) addRivers(rivers);
   setupFilters();
   bindEvents();
   render();
+  if (rivers) state.map.whenReady(() => addRivers(rivers));
 }
 
 function addRivers(geojson) {
