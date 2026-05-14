@@ -36,12 +36,62 @@ body {
 }
 
 .map-title,
-.legend {
+.legend,
+.parameter-bar {
   position: absolute;
   z-index: 500;
-  background: rgba(255, 255, 255, 0.92);
+  background: rgba(255, 255, 255, 0.94);
   border: 1px solid rgba(216, 222, 232, 0.9);
   box-shadow: 0 14px 40px rgba(23, 32, 42, 0.12);
+}
+
+.parameter-bar {
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  max-width: calc(100% - 520px);
+}
+
+.parameter-label {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.parameter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.param-chip {
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--ink);
+  border-radius: 999px;
+  padding: 6px 12px;
+  font: inherit;
+  font-size: 0.84rem;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.param-chip:hover {
+  border-color: var(--river);
+}
+
+.param-chip.is-active {
+  background: var(--river);
+  border-color: var(--river);
+  color: #fff;
 }
 
 .map-title {

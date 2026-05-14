@@ -3,6 +3,9 @@ const state = {
   map: null,
   layers: [],
   selected: null,
+  parameter: "สารหนู",
+  riversGeojson: null,
+  exceedFlows: [],
 };
 
 const text = {
@@ -21,7 +24,7 @@ const els = {
   metricMapped: document.querySelector("#metricMapped"),
   metricExceed: document.querySelector("#metricExceed"),
   typeFilter: document.querySelector("#typeFilter"),
-  parameterFilter: document.querySelector("#parameterFilter"),
+  parameterPicker: document.querySelector("#parameterPicker"),
   roundFilter: document.querySelector("#roundFilter"),
   searchInput: document.querySelector("#searchInput"),
   selectedTitle: document.querySelector("#selectedTitle"),
@@ -82,6 +85,7 @@ function setupMap() {
 
 function addRivers(geojson) {
   setupRiverPane();
+  state.riversGeojson = geojson;
   const paneOpt = { pane: "rivers" };
 
   // Layer 1 — wide halo for soft glow around the river
@@ -121,8 +125,8 @@ function addRivers(geojson) {
     }),
   }).addTo(state.map);
 
-  // Layer 4 — red animated flow downstream from each exceed-standard site
-  addExceedFlows(geojson);
+  // Layer 4 — red animated flow segments
+  updateExceedFlows();
 }
 
 function setupRiverPane() {
@@ -138,49 +142,81 @@ function getRiverColor(feature) {
 
 // ----- Red exceed flows -----
 
-function addExceedFlows(geojson) {
-  const exceedSites = getExceedSites();
-  if (!exceedSites.length) return;
-  const lines = collectRiverLines(geojson);
-  if (!lines.length) return;
+function updateExceedFlows() {
+  // Remove old flows
+  for (const layer of state.exceedFlows) layer.remove();
+  state.exceedFlows = [];
+  if (!state.riversGeojson) return;
 
-  for (const site of exceedSites) {
-    const start = findNearestOnLines(lines, site.latitude, site.longitude);
-    if (!start || start.distM > 1500) continue; // skip sites > 1.5km from any river
-    const downstream = traceDownstream(lines, start, 6000); // 6 km
-    if (downstream.length < 2) continue;
-    L.polyline(downstream, {
-      pane: "rivers",
-      color: "#b83232",
-      weight: 6,
-      opacity: 1,
-      dashArray: "20 36",
-      lineCap: "round",
-      className: "river-flow-line river-flow-exceed",
-    }).addTo(state.map);
+  const lines = collectRiverLines(state.riversGeojson);
+  if (!lines.length) return;
+  const sites = getSitesForFlow();
+  const maxSnapDist = 1500;
+  const fallbackDownstreamM = 6000;
+
+  for (const line of lines) {
+    // Snap each site onto this line and keep only those within range
+    const snapped = sites
+      .map((site) => {
+        const proj = snapPointToLine(line, site.latitude, site.longitude);
+        return proj && proj.distM <= maxSnapDist ? { site, proj } : null;
+      })
+      .filter(Boolean)
+      .sort((a, b) => a.proj.alongDist - b.proj.alongDist);
+
+    for (let i = 0; i < snapped.length; i++) {
+      if (snapped[i].site.status !== "exceed") continue;
+      const startProj = snapped[i].proj;
+      const next = snapped[i + 1];
+      let segment;
+      if (next) {
+        segment = traceLineSection(line, startProj, next.proj);
+      } else {
+        segment = traceDownstreamDist(line, startProj, fallbackDownstreamM);
+      }
+      if (segment.length < 2) continue;
+      const layer = L.polyline(segment, {
+        pane: "rivers",
+        color: "#b83232",
+        weight: 6,
+        opacity: 1,
+        dashArray: "20 36",
+        lineCap: "round",
+        className: "river-flow-line river-flow-exceed",
+      }).addTo(state.map);
+      state.exceedFlows.push(layer);
+    }
   }
 }
 
-function getExceedSites() {
+// Status of a water point for currently selected parameter
+function getWaterStatusForParam(siteId) {
+  const param = state.parameter;
+  const allRows = state.data.waterResults.filter((r) => r.siteId === siteId);
+  const rows =
+    param === text.all ? allRows : allRows.filter((r) => r.parameter === param);
+  if (!rows.length) return "no_data";
+  const latestRound = Math.max(...rows.map((r) => r.round));
+  const latest = rows.filter((r) => r.round === latestRound);
+  if (latest.some((r) => r.status === "exceed")) return "exceed";
+  if (latest.some((r) => r.status === "pass")) return "pass";
+  return "no_data";
+}
+
+// Returns list of sites (water + factory) with status for current parameter
+function getSitesForFlow() {
   const sites = [];
-  // Water points that exceed in their latest round
-  const latestByPoint = {};
-  for (const r of state.data.waterResults) {
-    if (r.status !== "exceed") continue;
-    if (!latestByPoint[r.siteId] || r.round > latestByPoint[r.siteId]) {
-      latestByPoint[r.siteId] = r.round;
+  for (const p of state.data.waterPoints) {
+    if (!p.latitude || !p.longitude) continue;
+    const status = getWaterStatusForParam(p.id);
+    if (status === "exceed" || status === "pass") {
+      sites.push({ id: p.id, latitude: p.latitude, longitude: p.longitude, status });
     }
   }
-  for (const point of state.data.waterPoints) {
-    if (latestByPoint[point.id] && point.latitude && point.longitude) {
-      sites.push({ latitude: point.latitude, longitude: point.longitude });
-    }
-  }
-  // Factory sites flagged as fail
-  for (const site of state.data.factorySites) {
-    if (site.overallStatus === "fail" && site.latitude && site.longitude) {
-      sites.push({ latitude: site.latitude, longitude: site.longitude });
-    }
+  for (const s of state.data.factorySites) {
+    if (!s.latitude || !s.longitude) continue;
+    const status = s.overallStatus === "fail" ? "exceed" : "pass";
+    sites.push({ id: s.id, latitude: s.latitude, longitude: s.longitude, status });
   }
   return sites;
 }
@@ -225,28 +261,45 @@ function projectOnSegment(lat, lng, a, b) {
   return { t, lat: projLat, lng: projLng };
 }
 
-function findNearestOnLines(lines, lat, lng) {
+// Snap a point onto a single line and return projection info + cumulative along-line distance
+function snapPointToLine(line, lat, lng) {
   let best = null;
-  for (let li = 0; li < lines.length; li++) {
-    const line = lines[li];
-    for (let pi = 1; pi < line.length; pi++) {
-      const a = line[pi - 1];
-      const b = line[pi];
-      const proj = projectOnSegment(lat, lng, a, b);
-      const d = haversineM(lat, lng, proj.lat, proj.lng);
-      if (!best || d < best.distM) {
-        best = { distM: d, lineIndex: li, segmentEnd: pi, point: [proj.lat, proj.lng] };
-      }
+  let cumBefore = 0;
+  for (let pi = 1; pi < line.length; pi++) {
+    const a = line[pi - 1];
+    const b = line[pi];
+    const segLen = haversineM(a[0], a[1], b[0], b[1]);
+    const proj = projectOnSegment(lat, lng, a, b);
+    const d = haversineM(lat, lng, proj.lat, proj.lng);
+    if (!best || d < best.distM) {
+      best = {
+        distM: d,
+        segmentEnd: pi,
+        t: proj.t,
+        point: [proj.lat, proj.lng],
+        alongDist: cumBefore + segLen * proj.t,
+      };
     }
+    cumBefore += segLen;
   }
   return best;
 }
 
-function traceDownstream(lines, start, distanceM) {
-  const line = lines[start.lineIndex];
-  const out = [start.point];
+// Build a polyline along `line` from startProj to endProj
+function traceLineSection(line, startProj, endProj) {
+  const out = [startProj.point];
+  for (let pi = startProj.segmentEnd; pi < endProj.segmentEnd; pi++) {
+    out.push(line[pi]);
+  }
+  out.push(endProj.point);
+  return out;
+}
+
+// Trace downstream from startProj for `distanceM` meters along `line`
+function traceDownstreamDist(line, startProj, distanceM) {
+  const out = [startProj.point];
   let remaining = distanceM;
-  let idx = start.segmentEnd;
+  let idx = startProj.segmentEnd;
   while (idx < line.length && remaining > 0) {
     const last = out[out.length - 1];
     const next = line[idx];
@@ -267,16 +320,43 @@ function traceDownstream(lines, start, distanceM) {
 function setupFilters() {
   const waterParams = new Set(state.data.waterResults.map((r) => r.parameter));
   const factoryParams = new Set(state.data.factoryResults.map((r) => r.parameter));
-  const params = [text.all, ...Array.from(new Set([...waterParams, ...factoryParams])).sort()];
-  els.parameterFilter.innerHTML = params.map((param) => optionHtml(param)).join("");
+  // Put "สารหนู" first, then other heavy metals sorted, then "ทั้งหมด" last
+  const all = Array.from(new Set([...waterParams, ...factoryParams])).sort();
+  const preferred = "สารหนู";
+  const others = all.filter((p) => p !== preferred);
+  const params = [preferred, ...others, text.all];
+  if (!params.includes(state.parameter)) state.parameter = preferred;
+  renderParameterPicker(params);
 
   const rounds = [text.latest, ...state.data.samplingRounds.map((r) => String(r.round))];
   els.roundFilter.innerHTML = rounds.map((round) => optionHtml(round)).join("");
   els.sourceNote.textContent = state.data.meta.note;
 }
 
+function renderParameterPicker(params) {
+  els.parameterPicker.innerHTML = params
+    .map(
+      (p) =>
+        `<button type="button" role="radio" aria-checked="${
+          p === state.parameter ? "true" : "false"
+        }" class="param-chip${p === state.parameter ? " is-active" : ""}" data-param="${escapeHtml(p)}">${escapeHtml(p)}</button>`
+    )
+    .join("");
+  els.parameterPicker.querySelectorAll(".param-chip").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      state.parameter = btn.dataset.param;
+      els.parameterPicker.querySelectorAll(".param-chip").forEach((b) => {
+        const active = b.dataset.param === state.parameter;
+        b.classList.toggle("is-active", active);
+        b.setAttribute("aria-checked", active ? "true" : "false");
+      });
+      render();
+    });
+  });
+}
+
 function bindEvents() {
-  [els.typeFilter, els.parameterFilter, els.roundFilter].forEach((el) => {
+  [els.typeFilter, els.roundFilter].forEach((el) => {
     el.addEventListener("change", render);
   });
   els.searchInput.addEventListener("input", render);
@@ -288,6 +368,7 @@ function render() {
   renderMetrics();
   renderMarkers(sites);
   renderList(sites);
+  updateExceedFlows();
   const selectedStillVisible =
     state.selected && sites.some((site) => site.type === state.selected.type && site.id === state.selected.id);
   if ((!state.selected || !selectedStillVisible) && sites.length) {
@@ -417,7 +498,7 @@ function renderFactorySelection(site) {
 }
 
 function renderWaterSelection(site) {
-  const param = els.parameterFilter.value;
+  const param = state.parameter;
   const round = getSelectedRoundForSite(site.id);
   let rows = state.data.waterResults.filter((r) => r.siteId === site.id && r.round === round);
   if (param !== text.all) rows = rows.filter((r) => r.parameter === param);
@@ -446,7 +527,7 @@ function buildPopup(site) {
 }
 
 function getCurrentWaterRows() {
-  const param = els.parameterFilter.value;
+  const param = state.parameter;
   return state.data.waterResults.filter((r) => {
     if (param !== text.all && r.parameter !== param) return false;
     return r.round === getSelectedRoundForSite(r.siteId);
@@ -465,7 +546,7 @@ function getSiteMarkerStatus(site) {
     return site.overallStatus === "fail" ? "fail" : "reported";
   }
 
-  const param = els.parameterFilter.value;
+  const param = state.parameter;
   const round = getSelectedRoundForSite(site.id);
   let rows = state.data.waterResults.filter((r) => r.siteId === site.id && r.round === round);
   if (param !== text.all) rows = rows.filter((r) => r.parameter === param);
