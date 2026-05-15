@@ -7,6 +7,7 @@ Static web map for sharing the current Mae Kok water-quality monitoring data.
 - 20 current water monitoring points from the Pollution Control Department PDF, pages 34-44
 - Coordinates are included for every current water monitoring point
 - 4 factory/sample points from `ผลโลหะ จ.เชียงราย.xlsx`
+- 26 DIW-registered factories within 3 km of the Kok River, filtered from `diw_factories_chiangrai_kok_districts.csv` (286 factories across 5 districts: เมืองเชียงราย, เวียงชัย, แม่จัน, เชียงแสน, ดอยหลวง)
 - Water-quality measurements from rounds 1-17, filtered to the current 20 water monitoring points
 - Filters for point type, parameter, sampling round, and search
 
