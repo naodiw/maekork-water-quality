@@ -546,6 +546,14 @@ input {
   font-size: 0.74rem;
 }
 
+.round-source {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 0.72rem;
+  text-align: center;
+  letter-spacing: 0.02em;
+}
+
 .selected-card {
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -912,8 +920,7 @@ input {
   }
 
   .source-note {
-    margin-top: 4px;
-    font-size: 0.78rem;
+    display: none;
   }
 
   .filters {
