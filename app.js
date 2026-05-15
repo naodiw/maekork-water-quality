@@ -674,6 +674,27 @@ function escapeHtml(value) {
   });
 })();
 
+// On mobile, relocate the round slider into the map stage as a floating bottom bar
+(() => {
+  const slider = document.querySelector(".round-control");
+  const mapStage = document.querySelector(".map-stage");
+  const filtersSection = document.querySelector(".filters");
+  if (!slider || !mapStage || !filtersSection) return;
+
+  function relocate() {
+    const mobile = window.innerWidth <= 980;
+    if (mobile && slider.parentElement !== mapStage) {
+      mapStage.appendChild(slider);
+      slider.classList.add("round-control-floating");
+    } else if (!mobile && slider.parentElement !== filtersSection) {
+      filtersSection.appendChild(slider);
+      slider.classList.remove("round-control-floating");
+    }
+  }
+  relocate();
+  window.addEventListener("resize", relocate);
+})();
+
 init().catch((error) => {
   console.error(error);
   els.selectedTitle.textContent = text.loadFailed;

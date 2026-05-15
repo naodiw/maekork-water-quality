@@ -871,8 +871,58 @@ input {
   .stat-row .stat strong { font-size: 1.15rem; }
 
   .map-stage {
-    height: 60vh;
-    min-height: 380px;
+    height: 70vh;
+    min-height: 420px;
+  }
+
+  /* Round slider becomes a floating overlay at the bottom of the map */
+  .round-control-floating {
+    position: absolute;
+    bottom: 14px;
+    left: 12px;
+    right: 12px;
+    z-index: 550;
+    background: rgba(255, 255, 255, 0.96);
+    border: 1px solid rgba(216, 222, 232, 0.9);
+    border-radius: 12px;
+    padding: 8px 14px 10px;
+    margin: 0;
+    box-shadow: 0 10px 30px rgba(23, 32, 42, 0.16);
+  }
+
+  .round-control-floating .round-header {
+    font-size: 0.78rem;
+  }
+
+  .round-control-floating .round-ticks {
+    font-size: 0.7rem;
+  }
+
+  /* Shrink the bottom control panel */
+  .control-panel {
+    padding: 14px 16px 20px;
+  }
+
+  .control-panel header {
+    margin-bottom: 8px;
+  }
+
+  .control-panel header h2 {
+    font-size: 1.1rem;
+  }
+
+  .source-note {
+    margin-top: 4px;
+    font-size: 0.78rem;
+  }
+
+  .filters {
+    margin-bottom: 10px;
+  }
+
+  .selected-card {
+    margin: 8px 0 10px;
+    padding: 12px;
   }
 
   #map {
