@@ -887,9 +887,8 @@ input {
     overflow: visible;
   }
 
-  /* Parameter bar: full width chip row, scrollable */
+  /* Parameter bar: full width chip row, scrollable. top is set by 1280px rule (=64px) */
   .parameter-bar {
-    top: 12px;
     left: 12px;
     right: 12px;
     transform: none;
