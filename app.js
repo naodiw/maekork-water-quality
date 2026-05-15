@@ -663,6 +663,17 @@ function escapeHtml(value) {
     .replaceAll("'", "&#039;");
 }
 
+// Report panel collapsible toggle (mobile + tablet)
+(() => {
+  const panel = document.getElementById("reportPanel");
+  const toggle = document.getElementById("reportToggle");
+  if (!panel || !toggle) return;
+  toggle.addEventListener("click", () => {
+    const open = panel.classList.toggle("is-open");
+    toggle.setAttribute("aria-expanded", open ? "true" : "false");
+  });
+})();
+
 init().catch((error) => {
   console.error(error);
   els.selectedTitle.textContent = text.loadFailed;
