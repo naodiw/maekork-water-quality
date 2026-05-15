@@ -546,12 +546,10 @@ input {
   font-size: 0.74rem;
 }
 
-.round-source {
-  margin: 4px 0 0;
+.round-source-inline {
+  font-weight: 500;
   color: var(--muted);
-  font-size: 0.72rem;
-  text-align: center;
-  letter-spacing: 0.02em;
+  font-size: 0.78rem;
 }
 
 .selected-card {
@@ -886,37 +884,44 @@ input {
   /* Round slider becomes a floating overlay at the bottom of the map */
   .round-control-floating {
     position: absolute;
-    bottom: 14px;
+    bottom: 12px;
     left: 12px;
     right: 12px;
     z-index: 550;
     background: rgba(255, 255, 255, 0.96);
     border: 1px solid rgba(216, 222, 232, 0.9);
-    border-radius: 12px;
-    padding: 8px 14px 10px;
+    border-radius: 10px;
+    padding: 6px 12px 4px;
     margin: 0;
     box-shadow: 0 10px 30px rgba(23, 32, 42, 0.16);
+    gap: 2px;
   }
 
   .round-control-floating .round-header {
     font-size: 0.78rem;
+    align-items: center;
+  }
+
+  .round-control-floating .round-source-inline {
+    font-size: 0.72rem;
+  }
+
+  .round-control-floating #roundSlider {
+    margin: 2px 0;
+    height: 4px;
   }
 
   .round-control-floating .round-ticks {
-    font-size: 0.7rem;
+    display: none;
   }
 
-  /* Shrink the bottom control panel */
+  /* Shrink the bottom control panel; hide its long header (title + citation) */
   .control-panel {
     padding: 14px 16px 20px;
   }
 
   .control-panel header {
-    margin-bottom: 8px;
-  }
-
-  .control-panel header h2 {
-    font-size: 1.1rem;
+    display: none;
   }
 
   .source-note {
@@ -975,14 +980,14 @@ input {
     padding: 8px 14px;
   }
 
-  /* Legend: compact pills row, allow horizontal scroll if needed */
+  /* Legend: compact pills row, sits above the round slider */
   .legend {
     left: 12px;
     right: 12px;
-    bottom: 12px;
+    bottom: 68px;
     gap: 8px;
-    padding: 8px 10px;
-    font-size: 0.78rem;
+    padding: 6px 10px;
+    font-size: 0.74rem;
     overflow-x: auto;
     flex-wrap: nowrap;
     white-space: nowrap;
