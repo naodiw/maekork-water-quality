@@ -6,10 +6,94 @@
     <title>แผนที่ผลตรวจวัดแม่น้ำกก</title>
     <link rel="preconnect" href="https://unpkg.com" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link rel="stylesheet" href="styles.css?v=27" />
+    <link rel="stylesheet" href="styles.css?v=28" />
   </head>
   <body>
     <main class="app-shell">
+      <aside class="report-panel" aria-label="รายงานเสนอผู้บริหาร">
+        <header class="report-header">
+          <p class="eyebrow">Executive Briefing</p>
+          <h1>สารหนูในแม่น้ำกก</h1>
+          <p class="report-subtitle">สถานการณ์ ที่มา ปัจจัยกระตุ้น และข้อเสนอแนะเชิงนโยบาย</p>
+          <p class="report-date">รายงาน ณ พฤษภาคม 2569</p>
+        </header>
+
+        <section class="report-section">
+          <h2><span class="num">1</span> สรุปสำหรับผู้บริหาร</h2>
+          <p>การตรวจวัดคุณภาพน้ำแม่น้ำกก <strong>17 ครั้ง</strong> โดยกรมควบคุมมลพิษ (มี.ค. 2568 – มี.ค. 2569) พบ <strong class="hl-danger">18 จุดจากทั้งหมด 20 จุด ตรวจพบสารหนูเกินมาตรฐานในบางรอบ</strong> ครอบคลุมต้นน้ำ (ท่าตอน อ.แม่อาย) ถึงปลายน้ำ (เชียงแสน) ก่อนไหลออกแม่น้ำโขง</p>
+          <div class="stat-row">
+            <div class="stat"><strong>18 / 20</strong><span>จุดตรวจที่เคยเกินมาตรฐาน</span></div>
+            <div class="stat"><strong>17</strong><span>รอบการตรวจ</span></div>
+            <div class="stat"><strong>64</strong><span>โรงงานในรัศมี 3 กม.</span></div>
+          </div>
+        </section>
+
+        <section class="report-section">
+          <h2><span class="num">2</span> ที่มาของสารหนู</h2>
+          <p>สารหนู (As, Arsenic) <strong>ไม่ได้ถูกผลิตขึ้นโดยโรงงานริมแม่น้ำในประเทศไทย</strong> แต่มีต้นกำเนิดจาก <strong>กิจกรรมเหมืองแร่ในต้นน้ำเขตประเทศเมียนมา</strong> ตะกอนแร่ที่มีสารหนูสะสมจะถูกพัดพามาตามกระแสน้ำและตกตะกอนในแม่น้ำกกตลอดเส้นทาง</p>
+          <blockquote class="callout callout-info">
+            ข้อมูลทางธรณีวิทยาชี้ว่าพื้นที่ต้นน้ำของแม่น้ำกกในเขตรัฐฉาน (Shan State) เป็นแนวแร่ที่มี arsenopyrite (FeAsS) และ realgar (As₄S₄) ปะปนกับแร่เศรษฐกิจ
+          </blockquote>
+        </section>
+
+        <section class="report-section">
+          <h2><span class="num">3</span> ปัจจัยกระตุ้นในประเทศไทย</h2>
+          <p>การวิเคราะห์โรงงาน <strong>64 แห่ง</strong> (ฐานข้อมูลกรมโรงงานอุตสาหกรรม) ในรัศมี 3 กม. ของแม่น้ำกก พบกลุ่มกิจการที่มีความเชื่อมโยงกับการปลดปล่อยสารหนูเรียงตามระดับความเสี่ยง:</p>
+
+          <div class="risk-card risk-high">
+            <div class="risk-head"><span class="risk-dot"></span><strong>เสี่ยงสูงสุด · ดูดทราย/ขุดทรายในลำน้ำ</strong><span class="risk-count">24 โรง</span></div>
+            <p>ไม่ได้สร้างสารหนูขึ้นใหม่ แต่ <strong>กวนตะกอนใต้น้ำ</strong> ที่มีสารหนูสะสมอยู่จากต้นน้ำให้แขวนลอยกลับสู่ผิวน้ำ ทำให้ค่าที่วัดในน้ำดิบสูงขึ้นชั่วคราว</p>
+            <p class="risk-sub">โรงงานติดแม่น้ำที่สุด (&lt; 200 ม.):</p>
+            <ul class="risk-list">
+              <li>เชียงราย เอส.เอส.พี · ดอยหลวง · 40 ม.</li>
+              <li>ท่าทราย นิลาวันวิริยะ · แม่อาย · 50 ม. (ใกล้ KK01–02)</li>
+              <li>ธนะวงศ์กรุ๊ป · ดอยหลวง · 70 ม.</li>
+              <li>ท่าทรายไฮคลาส พีวีซี กรุ๊ป · แม่จัน · 90 ม.</li>
+              <li>ช.กิจอนันต์ · เมืองเชียงราย · 100 ม.</li>
+            </ul>
+          </div>
+
+          <div class="risk-card risk-high">
+            <div class="risk-head"><span class="risk-dot"></span><strong>เสี่ยงสูง · โม่/บด/ย่อยหิน</strong><span class="risk-count">2 โรง</span></div>
+            <p>หินบางชนิดมี arsenopyrite ผสม → ฝุ่นและน้ำชะ (leachate) จากกองหินบดอาจไหลลงสู่ลำน้ำใกล้เคียง</p>
+          </div>
+
+          <div class="risk-card risk-med">
+            <div class="risk-head"><span class="risk-dot"></span><strong>เสี่ยงปานกลาง</strong><span class="risk-count">16 โรง</span></div>
+            <ul class="risk-list">
+              <li>ผลิตแอสฟัลต์ติกคอนกรีต (4) — ฝุ่น ash จากเชื้อเพลิง</li>
+              <li>ผลิตคอนกรีต/ผสมซีเมนต์ (10) — น้ำล้างเข้าระบบบำบัด</li>
+              <li>งานโลหะ กลึง/เชื่อม (2) — คราบโลหะใน wastewater</li>
+            </ul>
+          </div>
+
+          <div class="risk-card risk-low">
+            <div class="risk-head"><span class="risk-dot"></span><strong>เสี่ยงต่ำ – ต่ำมาก</strong><span class="risk-count">22 โรง</span></div>
+            <p>อาหาร โรงน้ำแข็ง โรงสี ฆ่าสัตว์ เฟอร์นิเจอร์ ซ่อมรถ ฯลฯ — ก่อน้ำเสียอินทรีย์เป็นหลัก ไม่ใช่แหล่งสารหนู</p>
+          </div>
+        </section>
+
+        <section class="report-section">
+          <h2><span class="num">4</span> ข้อสังเกตจุดวิกฤต</h2>
+          <p>จุดตรวจ <strong>KK01, KK02 (ท่าตอน – แม่อาย)</strong> และ <strong>KK05 (ดอยฮาง)</strong> ซึ่งตรวจพบสารหนูเกินบ่อยที่สุด <strong>มีท่าทราย 5–7 แห่งอยู่ภายในรัศมี 200 ม.</strong> จากจุดตรวจ สอดคล้องกับสมมติฐานที่ว่ากิจกรรมดูดทรายเป็นปัจจัยกระตุ้นการขึ้นของสารหนูในน้ำ</p>
+        </section>
+
+        <section class="report-section">
+          <h2><span class="num">5</span> ข้อเสนอแนะเชิงนโยบาย</h2>
+          <ol class="reco-list">
+            <li><strong>ทบทวนใบอนุญาตดูดทราย</strong> ที่ตำแหน่งตรงกับสถานีตรวจวัดที่พบสารหนูเกินมาตรฐาน โดยเฉพาะใน อ.แม่อาย ดอยฮาง แม่จัน และเชียงแสน</li>
+            <li><strong>กำหนดให้ผู้ประกอบการดูดทรายตรวจคุณภาพน้ำ</strong> ท้ายจุดดำเนินงานเป็นรายไตรมาส (สารหนู ตะกั่ว แมงกานีส) และรายงานต่อ คพ./อบต.</li>
+            <li><strong>เจรจาความร่วมมือระหว่างประเทศ</strong> ผ่านกระทรวงต่างประเทศกับหน่วยงานสิ่งแวดล้อมเมียนมาในการจัดการบ่อหางแร่ (tailings) และตะกอนหน้าเหมือง</li>
+            <li><strong>ติดตั้งระบบเตือนภัยน้ำขุ่น</strong> และประชาสัมพันธ์ให้ประชาชนงดบริโภคน้ำดิบในช่วงฝนตกหนักหรือมีการดูดทรายเข้มข้น</li>
+            <li><strong>ยกระดับวิธีตรวจวัดของห้องแล็บภูมิภาค</strong> ให้ใช้ ICP-MS เพื่อให้ LOD ต่ำกว่าค่ามาตรฐาน — แก้ปัญหาผลตรวจ "ตามรายงานผล" ที่สรุปไม่ได้</li>
+          </ol>
+        </section>
+
+        <footer class="report-footer">
+          <p>แหล่งข้อมูล: รายงานสถานการณ์คุณภาพน้ำในแม่น้ำกกและลำน้ำสาขา ครั้งที่ 17 กรมควบคุมมลพิษ · ฐานข้อมูลโรงงาน กรมโรงงานอุตสาหกรรม · OpenStreetMap</p>
+        </footer>
+      </aside>
+
       <section class="map-stage">
         <div id="map" aria-label="แผนที่จุดตรวจวัด"></div>
         <div class="legend" aria-label="คำอธิบายสัญลักษณ์">

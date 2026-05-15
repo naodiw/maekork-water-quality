@@ -24,8 +24,205 @@ body {
 
 .app-shell {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 420px;
+  grid-template-columns: 400px minmax(0, 1fr) 420px;
 }
+
+/* ===== Report panel (executive briefing, left column) ===== */
+.report-panel {
+  background: #fff;
+  height: 100vh;
+  overflow-y: auto;
+  padding: 28px 28px 36px;
+  border-right: 1px solid var(--line);
+  font-size: 0.92rem;
+  line-height: 1.62;
+  color: var(--ink);
+}
+
+.report-header {
+  padding-bottom: 22px;
+  margin-bottom: 22px;
+  border-bottom: 2px solid var(--ink);
+}
+
+.report-header h1 {
+  margin: 4px 0 6px;
+  font-size: 1.65rem;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+.report-subtitle {
+  margin: 0 0 8px;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.report-date {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.report-section {
+  margin-bottom: 26px;
+}
+
+.report-section h2 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 10px;
+  font-size: 1.08rem;
+  letter-spacing: -0.01em;
+}
+
+.report-section h2 .num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--ink);
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.report-section p {
+  margin: 0 0 10px;
+}
+
+.hl-danger {
+  color: var(--danger);
+}
+
+.stat-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin: 12px 0 4px;
+}
+
+.stat-row .stat {
+  background: #f6f8fb;
+  border-radius: 8px;
+  padding: 10px;
+  text-align: center;
+}
+
+.stat-row .stat strong {
+  display: block;
+  font-size: 1.35rem;
+  line-height: 1;
+  color: var(--ink);
+}
+
+.stat-row .stat span {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.7rem;
+  color: var(--muted);
+  line-height: 1.3;
+}
+
+.callout {
+  margin: 12px 0 4px;
+  padding: 12px 14px;
+  border-left: 3px solid var(--river);
+  background: #f0f7fb;
+  border-radius: 0 8px 8px 0;
+  font-size: 0.88rem;
+  color: var(--ink);
+}
+
+.callout-info {
+  border-color: var(--river);
+  background: #f0f7fb;
+}
+
+.risk-card {
+  margin: 10px 0;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fbfcfe;
+}
+
+.risk-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 0.95rem;
+}
+
+.risk-head strong { flex: 1; }
+
+.risk-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.risk-count {
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.risk-high { border-color: rgba(184, 50, 50, 0.35); background: #fdf3f3; }
+.risk-high .risk-dot { background: var(--danger); }
+.risk-med { border-color: rgba(201, 122, 21, 0.35); background: #fdf6ec; }
+.risk-med .risk-dot { background: var(--amber); }
+.risk-low { border-color: rgba(31, 122, 90, 0.35); background: #f1f8f4; }
+.risk-low .risk-dot { background: var(--forest); }
+
+.risk-card p {
+  margin: 0 0 6px;
+  font-size: 0.88rem;
+}
+
+.risk-sub {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  margin-top: 6px !important;
+}
+
+.risk-list {
+  margin: 4px 0 0;
+  padding-left: 18px;
+  font-size: 0.85rem;
+}
+
+.risk-list li { margin-bottom: 2px; }
+
+.reco-list {
+  margin: 0;
+  padding-left: 22px;
+}
+
+.reco-list li {
+  margin-bottom: 10px;
+  padding-left: 4px;
+}
+
+.report-footer {
+  margin-top: 28px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+  font-size: 0.75rem;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.report-footer p { margin: 0; }
 
 .map-stage {
   position: relative;
@@ -522,6 +719,17 @@ input {
 .river-flow-exceed {
   animation: river-flow 1.1s linear infinite;
   filter: drop-shadow(0 0 4px rgba(184, 50, 50, 0.55));
+}
+
+/* Hide left report panel on medium screens, keep map + dashboard */
+@media (max-width: 1280px) {
+  .app-shell {
+    grid-template-columns: minmax(0, 1fr) 420px;
+  }
+
+  .report-panel {
+    display: none;
+  }
 }
 
 @media (max-width: 980px) {
