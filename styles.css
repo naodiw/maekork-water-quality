@@ -877,8 +877,8 @@ input {
   .stat-row .stat strong { font-size: 1.15rem; }
 
   .map-stage {
-    height: 70vh;
-    min-height: 420px;
+    height: calc(100vh - 80px);
+    min-height: 520px;
   }
 
   /* Round slider becomes a floating overlay at the bottom of the map */
@@ -984,7 +984,7 @@ input {
   .legend {
     left: 12px;
     right: 12px;
-    bottom: 68px;
+    bottom: 92px;
     gap: 8px;
     padding: 6px 10px;
     font-size: 0.74rem;
