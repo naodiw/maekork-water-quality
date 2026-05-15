@@ -738,6 +738,20 @@ input {
     height: auto;
   }
 
+  /* Bring back report on mobile (stacked at top), shrink padding */
+  .report-panel {
+    display: block;
+    height: auto;
+    max-height: none;
+    overflow: visible;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+    padding: 22px 18px 28px;
+  }
+
+  .report-header h1 { font-size: 1.45rem; }
+  .stat-row .stat strong { font-size: 1.2rem; }
+
   .map-stage {
     height: 60vh;
     min-height: 380px;
