@@ -7,6 +7,7 @@ const state = {
   round: null,
   riversGeojson: null,
   exceedFlows: [],
+  firstFitDone: false,
 };
 
 const text = {
@@ -97,6 +98,9 @@ function setupMap() {
     maxZoom: 19,
     attribution: "&copy; OpenStreetMap contributors",
   }).addTo(state.map);
+  // Custom pane for factory icons — sits BELOW rivers and water markers
+  state.map.createPane("factories");
+  state.map.getPane("factories").style.zIndex = 250;
 }
 
 function addRivers(geojson) {
@@ -435,9 +439,9 @@ function renderMarkers(sites) {
     const color = markerColors[status] || markerColors.reported;
     let marker;
     if (site.type === "factory") {
-      marker = L.marker([site.latitude, site.longitude], { icon: factoryIcon(color) });
+      marker = L.marker([site.latitude, site.longitude], { icon: factoryIcon(color), pane: "factories" });
     } else if (site.type === "kokFactory") {
-      marker = L.marker([site.latitude, site.longitude], { icon: kokFactoryIcon() });
+      marker = L.marker([site.latitude, site.longitude], { icon: kokFactoryIcon(), pane: "factories" });
     } else {
       marker = L.circleMarker([site.latitude, site.longitude], {
         radius: 8,
@@ -453,9 +457,11 @@ function renderMarkers(sites) {
     state.layers.push(marker);
     bounds.push([site.latitude, site.longitude]);
   }
-  if (bounds.length) {
+  // Only auto-fit on first render so user-panned/zoomed view is preserved when changing round/parameter
+  if (bounds.length && !state.firstFitDone) {
     state.map.invalidateSize();
     state.map.fitBounds(bounds, { padding: [44, 44], maxZoom: 11, animate: false });
+    state.firstFitDone = true;
   }
 }
 
