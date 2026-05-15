@@ -421,6 +421,9 @@ function getFilteredSites() {
   for (const site of state.data.waterPoints) {
     sites.push({ type: "water", ...site });
   }
+  for (const site of (state.data.kokFactories || [])) {
+    sites.push({ type: "kokFactory", ...site });
+  }
   return sites;
 }
 
@@ -433,6 +436,8 @@ function renderMarkers(sites) {
     let marker;
     if (site.type === "factory") {
       marker = L.marker([site.latitude, site.longitude], { icon: factoryIcon(color) });
+    } else if (site.type === "kokFactory") {
+      marker = L.marker([site.latitude, site.longitude], { icon: kokFactoryIcon() });
     } else {
       marker = L.circleMarker([site.latitude, site.longitude], {
         radius: 8,
@@ -455,13 +460,22 @@ function renderMarkers(sites) {
 }
 
 function factoryIcon(color) {
-  // Factory silhouette with 2 buildings + chimney
   return L.divIcon({
     className: "factory-icon",
     html: `<span class="factory-marker" style="--c:${color}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21V11l5 3V11l5 3V8l5 3V5h2v16H3z"/><rect x="5" y="16" width="2" height="3"/><rect x="10" y="16" width="2" height="3"/><rect x="15" y="16" width="2" height="3"/></svg></span>`,
     iconSize: [28, 28],
     iconAnchor: [14, 14],
     popupAnchor: [0, -12],
+  });
+}
+
+function kokFactoryIcon() {
+  return L.divIcon({
+    className: "factory-icon kf-icon",
+    html: `<span class="factory-marker kf-marker"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21V11l5 3V11l5 3V8l5 3V5h2v16H3z"/><rect x="5" y="16" width="2" height="3"/><rect x="10" y="16" width="2" height="3"/><rect x="15" y="16" width="2" height="3"/></svg></span>`,
+    iconSize: [24, 24],
+    iconAnchor: [12, 12],
+    popupAnchor: [0, -10],
   });
 }
 
@@ -474,9 +488,11 @@ function renderList(sites) {
   els.listCount.textContent = `${sites.length.toLocaleString("th-TH")} ${text.point}`;
   els.siteList.innerHTML = sites
     .map((site, index) => {
-      const title = site.type === "factory" ? site.company : `${site.id} ${site.river}`;
+      let title, base;
+      if (site.type === "factory") { title = site.company; base = site.samplePoint; }
+      else if (site.type === "kokFactory") { title = site.name; base = `${site.district} · ห่าง ${(site.distanceM / 1000).toFixed(1)} กม.`; }
+      else { title = `${site.id} ${site.river}`; base = site.location; }
       const status = statusText[getSiteMarkerStatus(site)] || "";
-      const base = site.type === "factory" ? site.samplePoint : site.location;
       const detail = status ? `${base} · ${status}` : base;
       return `<button class="site-item" type="button" data-index="${index}">
         <strong>${escapeHtml(title)}</strong>
@@ -497,6 +513,8 @@ function selectSite(site, panMap) {
   state.selected = site;
   if (site.type === "factory") {
     renderFactorySelection(site);
+  } else if (site.type === "kokFactory") {
+    renderKokFactorySelection(site);
   } else {
     renderWaterSelection(site);
   }
@@ -518,6 +536,28 @@ function renderFactorySelection(site) {
   els.selectedBody.innerHTML = `
     <p>${escapeHtml(site.samplePoint)}</p>
     ${sampleDate ? `<p>วันรับตัวอย่าง ${escapeHtml(sampleDate)}</p>` : ""}
+    <p>${text.coordinate} ${site.latitude.toFixed(6)}, ${site.longitude.toFixed(6)}</p>
+    <div class="result-grid">${rows}</div>
+  `;
+}
+
+function renderKokFactorySelection(site) {
+  els.selectedTitle.textContent = site.name;
+  const rows = [
+    ["ประเภทกิจการ", site.business],
+    ["ที่ตั้ง", site.address],
+    ["อำเภอ", site.district],
+    ["ผู้ประกอบการ", site.operator],
+    ["โทรศัพท์", site.phone || "—"],
+    ["แรงม้า", site.horsepower || "—"],
+    ["ทุนจดทะเบียน", site.capital || "—"],
+    ["จำนวนคนงาน", site.workers || "—"],
+    ["ระยะห่างแม่น้ำกก", `${(site.distanceM / 1000).toFixed(2)} กม.`],
+  ]
+    .map(([k, v]) => `<span>${escapeHtml(k)}</span><strong>${escapeHtml(v || "—")}</strong>`)
+    .join("");
+  els.selectedBody.innerHTML = `
+    <p>ทะเบียน ${escapeHtml(site.fid)}</p>
     <p>${text.coordinate} ${site.latitude.toFixed(6)}, ${site.longitude.toFixed(6)}</p>
     <div class="result-grid">${rows}</div>
   `;
@@ -557,6 +597,12 @@ function buildPopup(site) {
       ${dateLine}
       ${statusLine}`;
   }
+  if (site.type === "kokFactory") {
+    return `<p class="popup-title">${escapeHtml(site.name)}</p>
+      <p>${escapeHtml(site.business)}</p>
+      <p>อ.${escapeHtml(site.district)} · ห่างแม่น้ำกก ${(site.distanceM / 1000).toFixed(1)} กม.</p>
+      ${site.workers ? `<p>คนงาน ${escapeHtml(site.workers)}</p>` : ""}`;
+  }
   const round = getSelectedRoundForSite(site.id);
   const roundInfo = state.data.samplingRounds.find((r) => r.round === round);
   const dateLine = roundInfo?.dateLabel ? `<p>วันเก็บตัวอย่าง ${escapeHtml(roundInfo.dateLabel)}</p>` : "";
@@ -581,6 +627,9 @@ function getSelectedRoundForSite(_siteId) {
 function getSiteMarkerStatus(site) {
   if (site.type === "factory") {
     return site.overallStatus === "fail" ? "fail" : "reported";
+  }
+  if (site.type === "kokFactory") {
+    return "reported";
   }
 
   const param = state.parameter;
