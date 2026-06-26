@@ -4,6 +4,7 @@ const state = {
   layers: [],
   selected: null,
   parameter: "สารหนู",
+  factoryFilter: "all",
   round: null,
   riversGeojson: null,
   exceedFlows: [],
@@ -30,6 +31,7 @@ const els = {
   selectedBody: document.querySelector("#selectedBody"),
   siteList: document.querySelector("#siteList"),
   listCount: document.querySelector("#listCount"),
+  factoryFilterButtons: document.querySelectorAll("[data-factory-filter]"),
 };
 
 const statusText = {
@@ -49,6 +51,12 @@ function parseFactoryDate(siteId) {
   if (!m) return "";
   const [, y, mo, d] = m;
   return `${parseInt(d, 10)} ${thaiMonths[parseInt(mo, 10) - 1]} ${y.slice(-2)}`;
+}
+
+function isSandFactory(site) {
+  const business = String(site.business || "");
+  const name = String(site.name || "");
+  return /ดูดทราย|ขุด.*ทราย|กรวดทราย|คัดกรวดทราย/.test(business) || /ท่าทราย/.test(name);
 }
 
 function statusPillHtml(status) {
@@ -400,6 +408,22 @@ function bindEvents() {
     updateRoundLabel();
     render();
   });
+
+  els.factoryFilterButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      state.factoryFilter = button.dataset.factoryFilter || "all";
+      updateFactoryFilterButtons();
+      render();
+    });
+  });
+}
+
+function updateFactoryFilterButtons() {
+  els.factoryFilterButtons.forEach((button) => {
+    const active = button.dataset.factoryFilter === state.factoryFilter;
+    button.classList.toggle("is-active", active);
+    button.setAttribute("aria-checked", active ? "true" : "false");
+  });
 }
 
 function render() {
@@ -426,6 +450,7 @@ function getFilteredSites() {
     sites.push({ type: "water", ...site });
   }
   for (const site of (state.data.kokFactories || [])) {
+    if (state.factoryFilter === "sand" && !isSandFactory(site)) continue;
     sites.push({ type: "kokFactory", ...site });
   }
   return sites;

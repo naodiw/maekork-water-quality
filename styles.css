@@ -454,6 +454,55 @@ body {
   margin-bottom: 16px;
 }
 
+.factory-filter-control {
+  display: grid;
+  gap: 8px;
+}
+
+.filter-label {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.segmented-control {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #f6f8fb;
+}
+
+.segmented-button {
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  min-height: 38px;
+  padding: 8px 10px;
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+}
+
+.segmented-button:hover,
+.segmented-button:focus-visible {
+  color: var(--river);
+  outline: none;
+}
+
+.segmented-button.is-active {
+  background: #fff;
+  color: var(--river);
+  box-shadow: 0 2px 8px rgba(23, 32, 42, 0.1);
+}
+
 label {
   display: grid;
   gap: 6px;
@@ -1016,6 +1065,11 @@ input {
     padding: 8px 10px;
   }
 
+  .segmented-button {
+    font-size: 0.8rem;
+    padding: 8px 6px;
+  }
+
   .round-header {
     flex-wrap: wrap;
   }
@@ -1041,6 +1095,7 @@ input {
 /* Larger touch targets on touch devices */
 @media (hover: none) and (pointer: coarse) {
   .param-chip,
+  .segmented-button,
   .site-item {
     min-height: 44px;
   }

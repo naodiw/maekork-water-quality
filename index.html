@@ -6,7 +6,7 @@
     <title>แผนที่ผลตรวจวัดแม่น้ำกก</title>
     <link rel="preconnect" href="https://unpkg.com" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link rel="stylesheet" href="styles.css?v=35" />
+    <link rel="stylesheet" href="styles.css?v=36" />
   </head>
   <body>
     <main class="app-shell">
@@ -129,6 +129,13 @@
         </header>
 
         <section class="filters" aria-label="ตัวกรอง">
+          <div class="factory-filter-control" aria-label="ตัวกรองโรงงานริมกก">
+            <span class="filter-label">โรงงานริมกก</span>
+            <div class="segmented-control" role="radiogroup" aria-label="ประเภทโรงงานที่แสดง">
+              <button type="button" class="segmented-button is-active" role="radio" aria-checked="true" data-factory-filter="all">ทั้งหมด</button>
+              <button type="button" class="segmented-button" role="radio" aria-checked="false" data-factory-filter="sand">เฉพาะท่าทราย</button>
+            </div>
+          </div>
           <div class="round-control">
             <div class="round-header">
               <span>รอบตรวจน้ำ <strong id="roundNumber">—</strong><span class="round-source-inline"> · จากกรมควบคุมมลพิษ</span></span>
@@ -162,6 +169,6 @@
       integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
       crossorigin=""
     ></script>
-    <script src="app.js?v=36"></script>
+    <script src="app.js?v=37"></script>
   </body>
 </html>
