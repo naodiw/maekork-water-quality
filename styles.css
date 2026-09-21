@@ -616,6 +616,14 @@ input {
   line-height: 1.55;
 }
 
+.site-note {
+  margin: 4px 0 6px;
+  padding-left: 8px;
+  border-left: 2px solid var(--line);
+  font-size: 0.82rem;
+  font-style: italic;
+}
+
 .result-grid {
   display: grid;
   grid-template-columns: 1fr auto;

@@ -84,7 +84,7 @@ const riverColors = {
 
 async function init() {
   const [data, rivers] = await Promise.all([
-    fetch("data.json").then((res) => res.json()),
+    fetch("data.json?v=22").then((res) => res.json()),
     fetch("rivers.geojson?v=7").then((res) => res.json()).catch(() => null),
   ]);
   state.data = data;
@@ -605,6 +605,7 @@ function renderWaterSelection(site) {
   els.selectedTitle.textContent = `${site.id} ${site.river}`;
   els.selectedBody.innerHTML = `
     <p>${escapeHtml(site.location)}</p>
+    ${site.note ? `<p class="site-note">${escapeHtml(site.note)}</p>` : ""}
     <p>${text.coordinate} ${Number(site.latitude).toFixed(6)}, ${Number(site.longitude).toFixed(6)}</p>
     <p>${text.round} ${round}${dateLabel ? ` · วันเก็บตัวอย่าง ${escapeHtml(dateLabel)}` : ""}</p>
     <div class="result-grid">
