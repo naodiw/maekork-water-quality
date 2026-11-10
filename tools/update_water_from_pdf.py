@@ -194,7 +194,8 @@ def extract_round_dates(pdf: pdfplumber.PDF) -> dict[int, str]:
         if "ผลการตรวจวัดคุณภาพน" not in clean(text) or "ระหว่างวันที่" not in text:
             continue
         for line in text.split("\n"):
-            m = re.search(r"ครั\s*ง\s*ท?\s*ี่\s*(\d+)\s*ระหว่างวันที่\s*(.+)", line)
+            # บางฉบับตัวอักษรไทยแตก (ไม่มีไม้โท) บางฉบับสะกดครบ จึงรับได้ทั้งสองแบบ
+            m = re.search(r"ครั\s*้?\s*ง\s*ท?\s*ี่\s*(\d+)\s*ระหว่างวันที่\s*(.+)", line)
             if not m:
                 continue
             num, span = int(m.group(1)), m.group(2).strip()
@@ -237,12 +238,15 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("pdf", help="ไฟล์รายงาน PDF ฉบับล่าสุดของกรมควบคุมมลพิษ")
     ap.add_argument("--check", action="store_true", help="ตรวจเทียบกับ data.json เดิมอย่างเดียว ไม่เขียนไฟล์")
+    ap.add_argument("--source-name", help="ชื่อไฟล์รายงานที่จะบันทึกเป็นแหล่งที่มาใน data.json (ถ้าไม่ระบุ ใช้ชื่อไฟล์ PDF ที่ส่งเข้ามา)")
     args = ap.parse_args()
 
     pdf_path = Path(args.pdf)
     if not pdf_path.exists():
         print(f"ไม่พบไฟล์: {pdf_path}", file=sys.stderr)
         return 1
+
+    source_name = args.source_name or pdf_path.name
 
     with pdfplumber.open(pdf_path) as pdf:
         results = extract_results(pdf)
@@ -262,16 +266,26 @@ def main() -> int:
         (r["siteId"], r["parameter"], r["round"]): r for r in data["waterResults"]
     }
 
+    old_points = {p["id"]: p for p in data["waterPoints"]}
     points = []
     for seq, (sid, river, location, province, note) in enumerate(WATER_POINTS, start=1):
-        if sid not in coords:
+        if sid in coords:
+            lat, lon = coords[sid]
+            status, source = "current_pdf", source_name
+        elif sid in old_points:
+            # จุดที่ไม่ได้เก็บตัวอย่างในรอบนี้ (เช่น NK09 เก็บ 3 เดือนครั้ง) จะไม่อยู่ในภาคผนวก ค
+            # ใช้พิกัดและแหล่งที่มาเดิมใน data.json ต่อไป
+            old = old_points[sid]
+            lat, lon = old["latitude"], old["longitude"]
+            status, source = old.get("coordinateStatus", "current_pdf"), old.get("source", source_name)
+            print(f"หมายเหตุ: ไม่พบพิกัดของ {sid} ในภาคผนวก ค — ใช้พิกัดเดิมใน data.json")
+        else:
             print(f"ไม่พบพิกัดของ {sid} ในภาคผนวก ค", file=sys.stderr)
             return 1
-        lat, lon = coords[sid]
         point = {
             "id": sid, "sequence": seq, "river": river, "location": location,
             "province": province, "latitude": lat, "longitude": lon,
-            "coordinateStatus": "current_pdf", "source": pdf_path.name,
+            "coordinateStatus": status, "source": source,
         }
         if note:
             point["note"] = note
@@ -320,13 +334,13 @@ def main() -> int:
 
     data["meta"] = {
         "title": "แผนที่ผลตรวจวัดคุณภาพน้ำแม่น้ำกกและจุดตรวจโลหะ จ.เชียงราย",
-        "generatedFrom": [pdf_path.name, "ผลโลหะ จ.เชียงราย.xlsx"],
+        "generatedFrom": [source_name, "ผลโลหะ จ.เชียงราย.xlsx"],
         "note": (
             f"ผลตรวจคุณภาพน้ำครั้งที่ 1-{total_rounds} และพิกัดจุดตรวจวัด {len(points)} จุด "
             f"ดึงจากรายงานกรมควบคุมมลพิษครั้งที่ {total_rounds} (ภาคผนวก ข และ ค)"
         ),
         "currentWaterPointCount": len(points),
-        "coordinateSource": pdf_path.name,
+        "coordinateSource": source_name,
     }
     data["waterPoints"] = points
     data["samplingRounds"] = sampling
