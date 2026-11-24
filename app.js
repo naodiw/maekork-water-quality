@@ -4,7 +4,7 @@ const state = {
   layers: [],
   selected: null,
   parameter: "สารหนู",
-  factoryFilter: "all",
+  factoryFilter: "none",
   showSurvey: true,
   round: null,
   riversGeojson: null,
@@ -430,7 +430,7 @@ function bindEvents() {
 
   els.factoryFilterButtons.forEach((button) => {
     button.addEventListener("click", () => {
-      state.factoryFilter = button.dataset.factoryFilter || "all";
+      state.factoryFilter = button.dataset.factoryFilter || "none";
       updateFactoryFilterButtons();
       render();
     });
@@ -515,6 +515,7 @@ function getFilteredSites() {
     sites.push({ type: "water", ...site });
   }
   for (const site of (state.data.kokFactories || [])) {
+    if (state.factoryFilter === "none") break;
     if (state.factoryFilter === "sand" && !isSandFactory(site)) continue;
     sites.push({ type: "kokFactory", ...site });
   }

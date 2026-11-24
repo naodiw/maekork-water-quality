@@ -1196,3 +1196,7 @@ input {
   font-weight: 700;
   color: var(--ink);
 }
+
+.segmented-control.segmented-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
