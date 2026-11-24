@@ -242,10 +242,11 @@ function getWaterStatusForParam(siteId) {
   return "no_data";
 }
 
-// Returns list of sites (water + factory) with status for current parameter
+// Returns list of sites (PCD water + factory + survey water) with status for current parameter
 function getSitesForFlow() {
   const sites = [];
-  for (const p of state.showPcd ? state.data.waterPoints : []) {
+  // Flows are drawn even when the PCD / survey markers are hidden
+  for (const p of state.data.waterPoints) {
     if (!p.latitude || !p.longitude) continue;
     const status = getWaterStatusForParam(p.id);
     if (status === "exceed" || status === "pass") {
@@ -256,6 +257,14 @@ function getSitesForFlow() {
     if (!s.latitude || !s.longitude) continue;
     const status = s.overallStatus === "fail" ? "exceed" : "pass";
     sites.push({ id: s.id, latitude: s.latitude, longitude: s.longitude, status });
+  }
+  // ศวภ.น. surface-water points: same exceed/pass logic for the selected parameter
+  for (const s of getSurveySites()) {
+    if (s.kind !== "water" || !s.latitude || !s.longitude) continue;
+    const status = getSiteMarkerStatus({ type: "surveyWater", ...s });
+    if (status === "exceed" || status === "pass") {
+      sites.push({ id: s.id, latitude: s.latitude, longitude: s.longitude, status });
+    }
   }
   return sites;
 }
