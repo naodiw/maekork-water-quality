@@ -992,40 +992,6 @@ input {
     min-height: 520px;
   }
 
-  /* Round slider becomes a floating overlay at the bottom of the map */
-  .round-control-floating {
-    position: absolute;
-    bottom: 12px;
-    left: 12px;
-    right: 12px;
-    z-index: 550;
-    background: rgba(255, 255, 255, 0.96);
-    border: 1px solid rgba(216, 222, 232, 0.9);
-    border-radius: 10px;
-    padding: 6px 12px 4px;
-    margin: 0;
-    box-shadow: 0 10px 30px rgba(23, 32, 42, 0.16);
-    gap: 2px;
-  }
-
-  .round-control-floating .round-header {
-    font-size: 0.78rem;
-    align-items: center;
-  }
-
-  .round-control-floating .round-source-inline {
-    font-size: 0.72rem;
-  }
-
-  .round-control-floating #roundSlider {
-    margin: 2px 0;
-    height: 4px;
-  }
-
-  .round-control-floating .round-ticks {
-    display: none;
-  }
-
   /* Shrink the bottom control panel; hide its long header (title + citation) */
   .control-panel {
     padding: 14px 16px 20px;
