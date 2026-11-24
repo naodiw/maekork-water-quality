@@ -6,6 +6,7 @@ const state = {
   parameter: "ทั้งหมด", // ค่าเริ่มต้น: แสดงทุกพารามิเตอร์
   factoryFilter: "none",
   showSurvey: true,
+  showPcd: true,
   round: null,
   riversGeojson: null,
   exceedFlows: [],
@@ -34,6 +35,7 @@ const els = {
   listCount: document.querySelector("#listCount"),
   factoryFilterButtons: document.querySelectorAll("[data-factory-filter]"),
   surveyFilterButtons: document.querySelectorAll("[data-survey-filter]"),
+  pcdFilterButtons: document.querySelectorAll("[data-pcd-filter]"),
   surveyFilterLabel: document.querySelector("#surveyFilterLabel"),
   surveySourceNote: document.querySelector("#surveySourceNote"),
 };
@@ -243,7 +245,7 @@ function getWaterStatusForParam(siteId) {
 // Returns list of sites (water + factory) with status for current parameter
 function getSitesForFlow() {
   const sites = [];
-  for (const p of state.data.waterPoints) {
+  for (const p of state.showPcd ? state.data.waterPoints : []) {
     if (!p.latitude || !p.longitude) continue;
     const status = getWaterStatusForParam(p.id);
     if (status === "exceed" || status === "pass") {
@@ -447,6 +449,18 @@ function bindEvents() {
       render();
     });
   });
+
+  els.pcdFilterButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      state.showPcd = button.dataset.pcdFilter === "show";
+      els.pcdFilterButtons.forEach((b) => {
+        const active = (b.dataset.pcdFilter === "show") === state.showPcd;
+        b.classList.toggle("is-active", active);
+        b.setAttribute("aria-checked", active ? "true" : "false");
+      });
+      render();
+    });
+  });
 }
 
 function getSurveySites() {
@@ -511,8 +525,10 @@ function getFilteredSites() {
   for (const site of state.data.factorySites) {
     sites.push({ type: "factory", ...site });
   }
-  for (const site of state.data.waterPoints) {
-    sites.push({ type: "water", ...site });
+  if (state.showPcd) {
+    for (const site of state.data.waterPoints) {
+      sites.push({ type: "water", ...site });
+    }
   }
   for (const site of (state.data.kokFactories || [])) {
     if (state.factoryFilter === "none") break;
