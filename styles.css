@@ -1200,3 +1200,38 @@ input {
 .segmented-control.segmented-3 {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
+
+/* ศวภ.น. lead card in executive summary */
+.agency-card {
+  margin: 4px 0 16px;
+  padding: 14px 16px 12px;
+  border: 1px solid #f1c4c4;
+  border-left: 4px solid var(--danger);
+  border-radius: 10px;
+  background: #fdf5f5;
+}
+
+.agency-card .stat-row .stat {
+  background: #fff;
+}
+
+.agency-eyebrow {
+  margin: 0 0 6px !important;
+  color: var(--danger);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.agency-headline {
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.agency-subhead {
+  margin: 6px 0 8px !important;
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
