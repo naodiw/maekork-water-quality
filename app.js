@@ -3,7 +3,7 @@ const state = {
   map: null,
   layers: [],
   selected: null,
-  parameter: "สารหนู",
+  parameter: "ทั้งหมด", // ค่าเริ่มต้น: แสดงทุกพารามิเตอร์
   factoryFilter: "none",
   showSurvey: true,
   round: null,
