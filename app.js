@@ -905,7 +905,8 @@ function escapeHtml(value) {
 (() => {
   const slider = document.querySelector(".round-control");
   const mapStage = document.querySelector(".map-stage");
-  const filtersSection = document.querySelector(".filters");
+  // On desktop the slider lives inside the คพ. group, right under the คพ. show/hide button
+  const filtersSection = document.querySelector(".filter-group-pcd");
   if (!slider || !mapStage || !filtersSection) return;
 
   function relocate() {

@@ -459,6 +459,60 @@ body {
   gap: 8px;
 }
 
+/* One bordered card per data source so each agency's controls read as a unit */
+.filter-group {
+  --group-accent: var(--muted);
+  display: grid;
+  gap: 10px;
+  padding: 10px 12px 12px;
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--group-accent);
+  border-radius: 10px;
+  background: var(--panel);
+}
+
+.filter-group[hidden] {
+  display: none;
+}
+
+.filter-group-pcd { --group-accent: var(--river); }
+.filter-group-survey { --group-accent: var(--danger); }
+.filter-group-factory { --group-accent: var(--muted); }
+
+.filter-group-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+
+.filter-group-tag {
+  flex: none;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--group-accent);
+  color: #fff;
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+
+.filter-group-title {
+  min-width: 0;
+  color: var(--ink);
+  font-size: 0.86rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.filter-group .round-control {
+  margin-bottom: 0;
+}
+
+/* Inside the คพ. card the source is already named in the header */
+.filter-group .round-source-inline {
+  display: none;
+}
+
 .filter-label {
   color: var(--muted);
   font-size: 0.78rem;
