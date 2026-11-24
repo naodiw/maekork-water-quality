@@ -6,7 +6,7 @@
     <title>แผนที่ผลตรวจวัดแม่น้ำกก</title>
     <link rel="preconnect" href="https://unpkg.com" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link rel="stylesheet" href="styles.css?v=41" />
+    <link rel="stylesheet" href="styles.css?v=42" />
   </head>
   <body>
     <main class="app-shell">
@@ -160,35 +160,55 @@
         </header>
 
         <section class="filters" aria-label="ตัวกรอง">
-          <div class="factory-filter-control" aria-label="ตัวกรองโรงงานริมกก">
-            <span class="filter-label">โรงงานริมกก</span>
-            <div class="segmented-control segmented-3" role="radiogroup" aria-label="ประเภทโรงงานที่แสดง">
-              <button type="button" class="segmented-button is-active" role="radio" aria-checked="true" data-factory-filter="none">ซ่อน</button>
-              <button type="button" class="segmented-button" role="radio" aria-checked="false" data-factory-filter="all">ทั้งหมด</button>
-              <button type="button" class="segmented-button" role="radio" aria-checked="false" data-factory-filter="sand">เฉพาะท่าทราย</button>
+          <div class="filter-group filter-group-pcd" role="group" aria-labelledby="pcdGroupTitle">
+            <div class="filter-group-head">
+              <span class="filter-group-tag">คพ.</span>
+              <span id="pcdGroupTitle" class="filter-group-title">กรมควบคุมมลพิษ · เฝ้าระวังรายเดือน</span>
+            </div>
+            <div class="factory-filter-control pcd-filter-control">
+              <span class="filter-label">จุดตรวจ คพ.</span>
+              <div class="segmented-control" role="radiogroup" aria-label="แสดงจุดตรวจ คพ.">
+                <button type="button" class="segmented-button is-active" role="radio" aria-checked="true" data-pcd-filter="show">แสดง</button>
+                <button type="button" class="segmented-button" role="radio" aria-checked="false" data-pcd-filter="hide">ซ่อน</button>
+              </div>
+            </div>
+            <div class="round-control">
+              <div class="round-header">
+                <span>รอบตรวจน้ำ <strong id="roundNumber">—</strong><span class="round-source-inline"> · จากกรมควบคุมมลพิษ</span></span>
+                <span id="roundDate" class="round-date">—</span>
+              </div>
+              <input type="range" id="roundSlider" min="1" max="24" value="24" step="1" aria-label="เลือกรอบตรวจน้ำของ คพ." />
+              <div class="round-ticks"><span>1</span><span id="roundMaxTick">24</span></div>
             </div>
           </div>
-          <div class="factory-filter-control pcd-filter-control" aria-label="ชั้นข้อมูลจุดตรวจ คพ.">
-            <span class="filter-label">จุดตรวจ คพ.</span>
-            <div class="segmented-control" role="radiogroup" aria-label="แสดงจุดตรวจ คพ.">
-              <button type="button" class="segmented-button is-active" role="radio" aria-checked="true" data-pcd-filter="show">แสดง</button>
-              <button type="button" class="segmented-button" role="radio" aria-checked="false" data-pcd-filter="hide">ซ่อน</button>
+
+          <div class="filter-group filter-group-survey survey-filter-control" role="group" aria-labelledby="surveyFilterLabel">
+            <div class="filter-group-head">
+              <span class="filter-group-tag">ศวภ.น.</span>
+              <span id="surveyFilterLabel" class="filter-group-title">ผลตรวจ ศวภ.น. กวภ. กรอ.</span>
+            </div>
+            <div class="factory-filter-control">
+              <span class="filter-label">จุดตรวจ ศวภ.น.</span>
+              <div class="segmented-control" role="radiogroup" aria-label="แสดงผลตรวจ ศวภ.น. กวภ. กรอ.">
+                <button type="button" class="segmented-button is-active" role="radio" aria-checked="true" data-survey-filter="show">แสดง</button>
+                <button type="button" class="segmented-button" role="radio" aria-checked="false" data-survey-filter="hide">ซ่อน</button>
+              </div>
             </div>
           </div>
-          <div class="factory-filter-control survey-filter-control" aria-label="ชั้นข้อมูลผลตรวจ ศวภ.น. กวภ. กรอ.">
-            <span id="surveyFilterLabel" class="filter-label">ผลตรวจ ศวภ.น. กวภ. กรอ.</span>
-            <div class="segmented-control" role="radiogroup" aria-label="แสดงผลตรวจ ศวภ.น. กวภ. กรอ.">
-              <button type="button" class="segmented-button is-active" role="radio" aria-checked="true" data-survey-filter="show">แสดง</button>
-              <button type="button" class="segmented-button" role="radio" aria-checked="false" data-survey-filter="hide">ซ่อน</button>
+
+          <div class="filter-group filter-group-factory" role="group" aria-labelledby="factoryGroupTitle">
+            <div class="filter-group-head">
+              <span class="filter-group-tag">โรงงาน</span>
+              <span id="factoryGroupTitle" class="filter-group-title">โรงงานริมแม่น้ำกก</span>
             </div>
-          </div>
-          <div class="round-control">
-            <div class="round-header">
-              <span>รอบตรวจน้ำ <strong id="roundNumber">—</strong><span class="round-source-inline"> · จากกรมควบคุมมลพิษ</span></span>
-              <span id="roundDate" class="round-date">—</span>
+            <div class="factory-filter-control">
+              <span class="filter-label">ประเภทที่แสดง</span>
+              <div class="segmented-control segmented-3" role="radiogroup" aria-label="ประเภทโรงงานที่แสดง">
+                <button type="button" class="segmented-button is-active" role="radio" aria-checked="true" data-factory-filter="none">ซ่อน</button>
+                <button type="button" class="segmented-button" role="radio" aria-checked="false" data-factory-filter="all">ทั้งหมด</button>
+                <button type="button" class="segmented-button" role="radio" aria-checked="false" data-factory-filter="sand">เฉพาะท่าทราย</button>
+              </div>
             </div>
-            <input type="range" id="roundSlider" min="1" max="24" value="24" step="1" />
-            <div class="round-ticks"><span>1</span><span id="roundMaxTick">24</span></div>
           </div>
         </section>
 
@@ -215,7 +235,7 @@
       integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
       crossorigin=""
     ></script>
-    <script src="app.js?v=45"></script>
+    <script src="app.js?v=46"></script>
     <!-- สถิติผู้เข้าชม (GoatCounter: ไม่ใช้คุกกี้) ดูได้ที่ https://naodiw.goatcounter.com -->
     <script data-goatcounter="https://naodiw.goatcounter.com/count"
             async src="https://gc.zgo.at/count.js"></script>
