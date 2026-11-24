@@ -5,6 +5,7 @@ const state = {
   selected: null,
   parameter: "สารหนู",
   factoryFilter: "all",
+  showSurvey: true,
   round: null,
   riversGeojson: null,
   exceedFlows: [],
@@ -32,6 +33,9 @@ const els = {
   siteList: document.querySelector("#siteList"),
   listCount: document.querySelector("#listCount"),
   factoryFilterButtons: document.querySelectorAll("[data-factory-filter]"),
+  surveyFilterButtons: document.querySelectorAll("[data-survey-filter]"),
+  surveyFilterLabel: document.querySelector("#surveyFilterLabel"),
+  surveySourceNote: document.querySelector("#surveySourceNote"),
 };
 
 const statusText = {
@@ -42,7 +46,12 @@ const statusText = {
   no_standard: "\u0e44\u0e21\u0e48\u0e21\u0e35\u0e04\u0e48\u0e32\u0e21\u0e32\u0e15\u0e23\u0e10\u0e32\u0e19",
   no_data: "\u0e44\u0e21\u0e48\u0e21\u0e35\u0e02\u0e49\u0e2d\u0e21\u0e39\u0e25",
   standard_not_available: "\u0e44\u0e21\u0e48\u0e21\u0e35\u0e04\u0e48\u0e32\u0e21\u0e32\u0e15\u0e23\u0e10\u0e32\u0e19",
+  inconclusive: "สรุปไม่ได้",
 };
+
+// Survey (การตรวจร่วม) site types
+const SURVEY_TYPES = new Set(["surveyWater", "surveySoil", "surveyFactory"]);
+const surveyKindToType = { water: "surveyWater", soil: "surveySoil", factory: "surveyFactory" };
 
 const thaiMonths = ["\u0e21.\u0e04.","\u0e01.\u0e1e.","\u0e21\u0e35.\u0e04.","\u0e40\u0e21.\u0e22.","\u0e1e.\u0e04.","\u0e21\u0e34.\u0e22.","\u0e01.\u0e04.","\u0e2a.\u0e04.","\u0e01.\u0e22.","\u0e15.\u0e04.","\u0e1e.\u0e22.","\u0e18.\u0e04."];
 
@@ -72,6 +81,7 @@ const markerColors = {
   exceed: "#b83232",
   no_standard: "#697386",
   no_data: "#697386",
+  inconclusive: "#697386",
 };
 
 const riverColors = {
@@ -84,11 +94,12 @@ const riverColors = {
 
 async function init() {
   const [data, rivers] = await Promise.all([
-    fetch("data.json?v=23").then((res) => res.json()),
+    fetch("data.json?v=24").then((res) => res.json()),
     fetch("rivers.geojson?v=7").then((res) => res.json()).catch(() => null),
   ]);
   state.data = data;
   setupMap();
+  setupSurveyControls();
   setupFilters();
   bindEvents();
   render();
@@ -348,6 +359,14 @@ function setupFilters() {
   const exceededInWater = new Set(
     state.data.waterResults.filter((r) => r.status === "exceed").map((r) => r.parameter)
   );
+  // Also offer metals that exceed in the survey river samples (only names that exist in the main water data)
+  const waterParams = new Set(state.data.waterResults.map((r) => r.parameter));
+  const surveyWaterIds = new Set(getSurveySites().filter((s) => s.kind === "water").map((s) => s.id));
+  for (const r of state.data.surveyResults || []) {
+    if (r.status === "exceed" && surveyWaterIds.has(r.siteId) && waterParams.has(r.parameter)) {
+      exceededInWater.add(r.parameter);
+    }
+  }
   const sorted = Array.from(exceededInWater).sort();
   const preferred = "สารหนู";
   const others = sorted.filter((p) => p !== preferred);
@@ -416,6 +435,52 @@ function bindEvents() {
       render();
     });
   });
+
+  els.surveyFilterButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      state.showSurvey = button.dataset.surveyFilter === "show";
+      els.surveyFilterButtons.forEach((b) => {
+        const active = (b.dataset.surveyFilter === "show") === state.showSurvey;
+        b.classList.toggle("is-active", active);
+        b.setAttribute("aria-checked", active ? "true" : "false");
+      });
+      render();
+    });
+  });
+}
+
+function getSurveySites() {
+  return state.data.surveySites || [];
+}
+
+function setupSurveyControls() {
+  const meta = state.data.surveyMeta;
+  const control = document.querySelector(".survey-filter-control");
+  if (!meta) {
+    if (control) control.hidden = true;
+    if (els.surveySourceNote) els.surveySourceNote.hidden = true;
+    return;
+  }
+  if (els.surveyFilterLabel) els.surveyFilterLabel.textContent = meta.label;
+  if (els.surveySourceNote) {
+    const c = meta.counts || {};
+    els.surveySourceNote.innerHTML = `<strong>${escapeHtml(meta.label)}</strong> (${escapeHtml(formatThaiDate(meta.dateFrom))} – ${escapeHtml(formatThaiDate(meta.dateTo))}) · น้ำ ${c.water ?? "-"} จุด · โรงงาน ${c.factory ?? "-"} แห่ง · ดินตะกอน ${c.soil ?? "-"} จุด`;
+  }
+}
+
+function formatThaiDate(iso) {
+  const m = String(iso || "").match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!m) return iso || "";
+  return `${parseInt(m[3], 10)} ${thaiMonths[parseInt(m[2], 10) - 1]} ${m[1].slice(-2)}`;
+}
+
+function getSurveyRows(siteId) {
+  return (state.data.surveyResults || []).filter((r) => r.siteId === siteId);
+}
+
+// Survey sample entries (with their results) linked to one of the existing grey factory markers
+function getLinkedSurveyFactory(factoryId) {
+  return getSurveySites().find((s) => s.kind === "factory" && s.linkedFactoryId === factoryId) || null;
 }
 
 function updateFactoryFilterButtons() {
@@ -453,6 +518,12 @@ function getFilteredSites() {
     if (state.factoryFilter === "sand" && !isSandFactory(site)) continue;
     sites.push({ type: "kokFactory", ...site });
   }
+  if (state.showSurvey) {
+    for (const site of getSurveySites()) {
+      if (site.kind === "factory" && site.linkedFactoryId) continue; // shown on the existing factory marker
+      sites.push({ type: surveyKindToType[site.kind], ...site });
+    }
+  }
   return sites;
 }
 
@@ -467,6 +538,12 @@ function renderMarkers(sites) {
       marker = L.marker([site.latitude, site.longitude], { icon: factoryIcon(color), pane: "factories" });
     } else if (site.type === "kokFactory") {
       marker = L.marker([site.latitude, site.longitude], { icon: kokFactoryIcon(), pane: "factories" });
+    } else if (site.type === "surveyFactory") {
+      marker = L.marker([site.latitude, site.longitude], { icon: factoryIcon(color, true), pane: "factories" });
+    } else if (site.type === "surveyWater") {
+      marker = L.marker([site.latitude, site.longitude], { icon: surveyWaterIcon(color) });
+    } else if (site.type === "surveySoil") {
+      marker = L.marker([site.latitude, site.longitude], { icon: surveySoilIcon() });
     } else {
       marker = L.circleMarker([site.latitude, site.longitude], {
         radius: 8,
@@ -490,10 +567,10 @@ function renderMarkers(sites) {
   }
 }
 
-function factoryIcon(color) {
+function factoryIcon(color, survey = false) {
   return L.divIcon({
     className: "factory-icon",
-    html: `<span class="factory-marker" style="--c:${color}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21V11l5 3V11l5 3V8l5 3V5h2v16H3z"/><rect x="5" y="16" width="2" height="3"/><rect x="10" y="16" width="2" height="3"/><rect x="15" y="16" width="2" height="3"/></svg></span>`,
+    html: `<span class="factory-marker${survey ? " survey-factory-marker" : ""}" style="--c:${color}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21V11l5 3V11l5 3V8l5 3V5h2v16H3z"/><rect x="5" y="16" width="2" height="3"/><rect x="10" y="16" width="2" height="3"/><rect x="15" y="16" width="2" height="3"/></svg></span>`,
     iconSize: [28, 28],
     iconAnchor: [14, 14],
     popupAnchor: [0, -12],
@@ -510,6 +587,26 @@ function kokFactoryIcon() {
   });
 }
 
+function surveyWaterIcon(color) {
+  return L.divIcon({
+    className: "survey-icon",
+    html: `<span class="survey-water-marker" style="--c:${color}"></span>`,
+    iconSize: [18, 18],
+    iconAnchor: [9, 9],
+    popupAnchor: [0, -10],
+  });
+}
+
+function surveySoilIcon() {
+  return L.divIcon({
+    className: "survey-icon",
+    html: `<span class="survey-soil-marker"></span>`,
+    iconSize: [16, 16],
+    iconAnchor: [8, 8],
+    popupAnchor: [0, -9],
+  });
+}
+
 function clearMarkers() {
   for (const layer of state.layers) layer.remove();
   state.layers = [];
@@ -522,6 +619,7 @@ function renderList(sites) {
       let title, base;
       if (site.type === "factory") { title = site.company; base = site.samplePoint; }
       else if (site.type === "kokFactory") { title = site.name; base = `${site.district} · ห่าง ${(site.distanceM / 1000).toFixed(1)} กม.`; }
+      else if (SURVEY_TYPES.has(site.type)) { title = site.name; base = `${surveyKindLabel(site)} · ${site.dateLabel}`; }
       else { title = `${site.id} ${site.river}`; base = site.location; }
       const status = statusText[getSiteMarkerStatus(site)] || "";
       const detail = status ? `${base} · ${status}` : base;
@@ -546,6 +644,8 @@ function selectSite(site, panMap) {
     renderFactorySelection(site);
   } else if (site.type === "kokFactory") {
     renderKokFactorySelection(site);
+  } else if (SURVEY_TYPES.has(site.type)) {
+    renderSurveySelection(site);
   } else {
     renderWaterSelection(site);
   }
@@ -563,12 +663,61 @@ function renderFactorySelection(site) {
     })
     .join("");
   const sampleDate = parseFactoryDate(site.id);
+  const linked = state.showSurvey ? getLinkedSurveyFactory(site.id) : null;
   els.selectedTitle.textContent = site.company;
   els.selectedBody.innerHTML = `
     <p>${escapeHtml(site.samplePoint)}</p>
     ${sampleDate ? `<p>วันรับตัวอย่าง ${escapeHtml(sampleDate)}</p>` : ""}
     <p>${text.coordinate} ${site.latitude.toFixed(6)}, ${site.longitude.toFixed(6)}</p>
     <div class="result-grid">${rows}</div>
+    ${linked ? `<h4 class="survey-heading">${escapeHtml(state.data.surveyMeta?.label || "การตรวจร่วม")}</h4>${surveySamplesHtml(linked)}` : ""}
+  `;
+}
+
+function surveyKindLabel(site) {
+  if (site.kind === "soil") return "ดินตะกอน";
+  if (site.kind === "factory") return `น้ำเสียโรงงาน ${site.samples?.length || 0} ตัวอย่าง`;
+  return "น้ำผิวดิน";
+}
+
+function surveyResultRowsHtml(rows) {
+  if (!rows.length) return `<span>ไม่มีข้อมูล</span><strong>-</strong>`;
+  return rows
+    .map((r) => {
+      const pill = r.status === "no_standard" || r.status === "no_data" ? "" : statusPillHtml(r.status);
+      const std = r.standard ? ` title="เกณฑ์ ${escapeHtml(r.standard)} ${escapeHtml(r.unit || "")}"` : "";
+      return `<span${std}>${escapeHtml(r.parameter)}</span><strong>${escapeHtml(r.raw || "-")} ${escapeHtml(r.unit || "")} ${pill}</strong>`;
+    })
+    .join("");
+}
+
+function surveySamplesHtml(site) {
+  return (site.samples || [])
+    .map((sample) => `
+      <div class="survey-sample">
+        <p class="survey-sample-title">${escapeHtml(sample.samplePoint)}</p>
+        <p>วันเก็บตัวอย่าง ${escapeHtml(sample.dateLabel)}${sample.compared ? " · เทียบมาตรฐานน้ำทิ้งจากโรงงาน" : " · น้ำเสียก่อนบำบัด ไม่เทียบมาตรฐาน"}</p>
+        ${sample.coordinateNote ? `<p class="site-note">${escapeHtml(sample.coordinateNote)}</p>` : ""}
+        <div class="result-grid">${surveyResultRowsHtml(getSurveyRows(sample.id))}</div>
+      </div>`)
+    .join("");
+}
+
+function renderSurveySelection(site) {
+  const meta = state.data.surveyMeta || {};
+  els.selectedTitle.textContent = site.name;
+  const stdLine =
+    site.kind === "water" ? meta.standards?.water :
+    site.kind === "soil" ? meta.standards?.soil : meta.standards?.factory;
+  const body = site.kind === "factory"
+    ? surveySamplesHtml(site)
+    : `<p>วันเก็บตัวอย่าง ${escapeHtml(site.dateLabel)}</p>
+       <div class="result-grid">${surveyResultRowsHtml(getSurveyRows(site.id))}</div>`;
+  els.selectedBody.innerHTML = `
+    <p class="survey-badge">${escapeHtml(meta.label || "การตรวจร่วม")} · ${escapeHtml(surveyKindLabel(site))}</p>
+    <p>${text.coordinate} ${Number(site.latitude).toFixed(6)}, ${Number(site.longitude).toFixed(6)}</p>
+    ${stdLine ? `<p class="site-note">${escapeHtml(stdLine)}</p>` : ""}
+    ${body}
   `;
 }
 
@@ -635,6 +784,12 @@ function buildPopup(site) {
       <p>อ.${escapeHtml(site.district)} · ห่างแม่น้ำกก ${(site.distanceM / 1000).toFixed(1)} กม.</p>
       ${site.workers ? `<p>คนงาน ${escapeHtml(site.workers)}</p>` : ""}`;
   }
+  if (SURVEY_TYPES.has(site.type)) {
+    return `<p class="popup-title">${escapeHtml(site.name)}</p>
+      <p>${escapeHtml(state.data.surveyMeta?.label || "การตรวจร่วม")} · ${escapeHtml(surveyKindLabel(site))}</p>
+      <p>วันเก็บตัวอย่าง ${escapeHtml(site.dateLabel)}</p>
+      ${statusLine}`;
+  }
   const round = getSelectedRoundForSite(site.id);
   const roundInfo = state.data.samplingRounds.find((r) => r.round === round);
   const dateLine = roundInfo?.dateLabel ? `<p>วันเก็บตัวอย่าง ${escapeHtml(roundInfo.dateLabel)}</p>` : "";
@@ -662,6 +817,20 @@ function getSiteMarkerStatus(site) {
   }
   if (site.type === "kokFactory") {
     return "reported";
+  }
+  if (site.type === "surveySoil") {
+    return "reported";
+  }
+  if (site.type === "surveyFactory") {
+    return site.overallStatus === "exceed" ? "fail" : site.overallStatus === "pass" ? "pass" : "reported";
+  }
+  if (site.type === "surveyWater") {
+    let rows = getSurveyRows(site.id);
+    if (state.parameter !== text.all) rows = rows.filter((r) => r.parameter === state.parameter);
+    if (!rows.length) return "no_data";
+    if (rows.some((r) => r.status === "exceed")) return "exceed";
+    if (rows.some((r) => r.status === "pass")) return "pass";
+    return "no_standard";
   }
 
   const param = state.parameter;
