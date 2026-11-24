@@ -194,6 +194,11 @@ print(json.dumps(results, ensure_ascii=False, indent=2))
 
 ---
 
+## สถิติผู้เข้าชม
+
+นับด้วย [GoatCounter](https://www.goatcounter.com/) (ไม่ใช้คุกกี้) ดูสถิติได้ที่ https://naodiw.goatcounter.com
+โค้ดนับอยู่ท้าย `index.html`
+
 ## Stack
 
 - [Leaflet](https://leafletjs.com/) — แผนที่ interactive
