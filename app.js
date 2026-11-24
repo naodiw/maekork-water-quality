@@ -49,7 +49,7 @@ const statusText = {
   inconclusive: "สรุปไม่ได้",
 };
 
-// Survey (การตรวจร่วม) site types
+// Survey (ผลตรวจ ศวภ.น. กวภ. กรอ.) site types
 const SURVEY_TYPES = new Set(["surveyWater", "surveySoil", "surveyFactory"]);
 const surveyKindToType = { water: "surveyWater", soil: "surveySoil", factory: "surveyFactory" };
 
@@ -94,7 +94,7 @@ const riverColors = {
 
 async function init() {
   const [data, rivers] = await Promise.all([
-    fetch("data.json?v=24").then((res) => res.json()),
+    fetch("data.json?v=25").then((res) => res.json()),
     fetch("rivers.geojson?v=7").then((res) => res.json()).catch(() => null),
   ]);
   state.data = data;
@@ -671,7 +671,7 @@ function renderFactorySelection(site) {
     ${sampleDate ? `<p>วันรับตัวอย่าง ${escapeHtml(sampleDate)}</p>` : ""}
     <p>${text.coordinate} ${site.latitude.toFixed(6)}, ${site.longitude.toFixed(6)}</p>
     <div class="result-grid">${rows}</div>
-    ${linked ? `<h4 class="survey-heading">${escapeHtml(state.data.surveyMeta?.label || "การตรวจร่วม")}</h4>${surveySamplesHtml(linked)}` : ""}
+    ${linked ? `<h4 class="survey-heading">${escapeHtml(state.data.surveyMeta?.label || "ผลตรวจ ศวภ.น. กวภ. กรอ.")}</h4>${surveySamplesHtml(linked)}` : ""}
   `;
 }
 
@@ -715,7 +715,7 @@ function renderSurveySelection(site) {
     : `<p>วันเก็บตัวอย่าง ${escapeHtml(site.dateLabel)}</p>
        <div class="result-grid">${surveyResultRowsHtml(getSurveyRows(site.id))}</div>`;
   els.selectedBody.innerHTML = `
-    <p class="survey-badge">${escapeHtml(meta.label || "การตรวจร่วม")} · ${escapeHtml(surveyKindLabel(site))}</p>
+    <p class="survey-badge">${escapeHtml(meta.label || "ผลตรวจ ศวภ.น. กวภ. กรอ.")} · ${escapeHtml(surveyKindLabel(site))}</p>
     <p>${text.coordinate} ${Number(site.latitude).toFixed(6)}, ${Number(site.longitude).toFixed(6)}</p>
     ${stdLine ? `<p class="site-note">${escapeHtml(stdLine)}</p>` : ""}
     ${body}
@@ -787,7 +787,7 @@ function buildPopup(site) {
   }
   if (SURVEY_TYPES.has(site.type)) {
     return `<p class="popup-title">${escapeHtml(site.name)}</p>
-      <p>${escapeHtml(state.data.surveyMeta?.label || "การตรวจร่วม")} · ${escapeHtml(surveyKindLabel(site))}</p>
+      <p>${escapeHtml(state.data.surveyMeta?.label || "ผลตรวจ ศวภ.น. กวภ. กรอ.")} · ${escapeHtml(surveyKindLabel(site))}</p>
       <p>วันเก็บตัวอย่าง ${escapeHtml(site.dateLabel)}</p>
       ${statusLine}`;
   }
