@@ -6,7 +6,7 @@
     <title>แผนที่ผลตรวจวัดแม่น้ำกก</title>
     <link rel="preconnect" href="https://unpkg.com" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link rel="stylesheet" href="styles.css?v=38" />
+    <link rel="stylesheet" href="styles.css?v=39" />
   </head>
   <body>
     <main class="app-shell">
@@ -114,6 +114,8 @@
           <span><i class="dot dot-pass"></i>ผ่าน</span>
           <span><i class="dot dot-exceed"></i>เกินมาตรฐาน</span>
           <span><i class="kf-legend"></i>โรงงานริมกก</span>
+          <span><i class="survey-water-legend"></i>จุดตรวจร่วม ส.ค. 69</span>
+          <span><i class="survey-soil-legend"></i>ดินตะกอน</span>
         </div>
         <div class="parameter-bar" role="radiogroup" aria-label="พารามิเตอร์ที่แสดง">
           <span class="parameter-label">พารามิเตอร์</span>
@@ -128,6 +130,7 @@
           <p class="source-note">
             ข้อมูลจาก <strong>รายงานสถานการณ์คุณภาพน้ำในแม่น้ำกกและลำน้ำสาขา แม่น้ำสาย แม่น้ำรวก แม่น้ำโขง ครั้งที่ 23</strong> · กรมควบคุมมลพิษ
           </p>
+          <p id="surveySourceNote" class="source-note"></p>
         </header>
 
         <section class="filters" aria-label="ตัวกรอง">
@@ -136,6 +139,13 @@
             <div class="segmented-control" role="radiogroup" aria-label="ประเภทโรงงานที่แสดง">
               <button type="button" class="segmented-button is-active" role="radio" aria-checked="true" data-factory-filter="all">ทั้งหมด</button>
               <button type="button" class="segmented-button" role="radio" aria-checked="false" data-factory-filter="sand">เฉพาะท่าทราย</button>
+            </div>
+          </div>
+          <div class="factory-filter-control survey-filter-control" aria-label="ชั้นข้อมูลการตรวจร่วม">
+            <span id="surveyFilterLabel" class="filter-label">การตรวจร่วม</span>
+            <div class="segmented-control" role="radiogroup" aria-label="แสดงผลการตรวจร่วม">
+              <button type="button" class="segmented-button is-active" role="radio" aria-checked="true" data-survey-filter="show">แสดง</button>
+              <button type="button" class="segmented-button" role="radio" aria-checked="false" data-survey-filter="hide">ซ่อน</button>
             </div>
           </div>
           <div class="round-control">
@@ -171,6 +181,6 @@
       integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
       crossorigin=""
     ></script>
-    <script src="app.js?v=39"></script>
+    <script src="app.js?v=40"></script>
   </body>
 </html>
