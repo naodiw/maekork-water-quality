@@ -37,6 +37,9 @@ PARAMETERS = [
     ("แคดเมียม", "แคดเมียม", "Cd", "mg/L", 0.005),
 ]
 PDF_PARAM_NAMES = {p[0] for p in PARAMETERS}
+# ตัวสะกดที่พบในรายงานบางฉบับ (เช่น ครั้งที่ 24 พิมพ์ "แคดเมยีม") -> ชื่อในตาราง PARAMETERS
+PDF_PARAM_ALIASES = {"แคดเมยีม": "แคดเมียม"}
+APPENDIX_TITLE = "ตารางแสดงผลการตรวจวัดคุณภาพน้ำผิวดิน"
 
 # จุดตรวจวัดที่ยังเก็บตัวอย่างอยู่ (ตารางที่ 1 ของรายงาน) — พิกัดดึงจากภาคผนวก ค อัตโนมัติ
 WATER_POINTS = [
@@ -87,10 +90,18 @@ def clean(text: str) -> str:
 def extract_results(pdf: pdfplumber.PDF) -> dict[str, dict[str, dict[int, str]]]:
     """อ่านตารางภาคผนวก ข -> {พารามิเตอร์: {สถานี: {ครั้งที่: ค่าดิบ}}}"""
     out: dict[str, dict[str, dict[int, str]]] = {}
-    for page in pdf.pages:
-        raw = page.extract_text() or ""
+    # ฉบับใหม่มีตารางผลรายพารามิเตอร์ทั้งในเนื้อรายงานและภาคผนวก ข — อ่านเฉพาะหน้าภาคผนวก ข
+    # (หน้าที่มีหัว "ตารางแสดงผลการตรวจวัดคุณภาพน้ำผิวดิน") ถ้ารายงานมีหัวนี้
+    texts = [page.extract_text() or "" for page in pdf.pages]
+    appendix = [APPENDIX_TITLE in clean(t) for t in texts]
+    for page, raw, is_appendix in zip(pdf.pages, texts, appendix):
+        if any(appendix) and not is_appendix:
+            continue
         # ตัวอักษรไทยใน PDF แตกเป็นช่วงๆ (เช่น 'สังกะส ี(mg/L)') จึงเทียบหลังตัดช่องว่าง
-        name = next((p for p in PDF_PARAM_NAMES if p in clean(raw)), None)
+        text_clean = clean(raw)
+        name = next((p for p in PDF_PARAM_NAMES if p in text_clean), None)
+        if not name:
+            name = next((v for k, v in PDF_PARAM_ALIASES.items() if k in text_clean), None)
         if not name:
             continue
         words = page.extract_words()
@@ -121,7 +132,14 @@ def extract_results(pdf: pdfplumber.PDF) -> dict[str, dict[str, dict[int, str]]]
         rounds = sorted(centers)
         # ตารางในภาคผนวก ข เท่านั้นที่มีหัวคอลัมน์เป็นเลขครั้งที่ 1..N เรียงต่อเนื่อง
         # (ตารางในเนื้อรายงานใช้ชื่อเดือนเป็นหัวคอลัมน์ จึงข้ามไป)
-        if len(rounds) < 10 or rounds != list(range(1, len(rounds) + 1)):
+        # ฉบับใหม่ (ตั้งแต่ครั้งที่ 24) แยกตารางเป็นรายปี: หน้า 1 = ครั้งที่ 1-14, หน้า 2 = ครั้งที่ 15-N
+        names_on_page = {p for p in PDF_PARAM_NAMES if p in text_clean} | {
+            v for k, v in PDF_PARAM_ALIASES.items() if k in text_clean}
+        consecutive = rounds == list(range(rounds[0], rounds[0] + len(rounds))) if rounds else False
+        if not consecutive:
+            continue
+        # หน้าเนื้อรายงานพูดถึงหลายพารามิเตอร์ในหน้าเดียว — อ่านเฉพาะหน้าที่มีชื่อพารามิเตอร์ชื่อเดียว
+        if len(names_on_page) != 1 or len(rounds) < 5:
             continue
 
         # ขอบเขตแนวนอนของแต่ละคอลัมน์ = กึ่งกลางระหว่างหัวคอลัมน์ที่ติดกัน
@@ -135,7 +153,8 @@ def extract_results(pdf: pdfplumber.PDF) -> dict[str, dict[str, dict[int, str]]]
         table = max(page.find_tables(), key=lambda t: (t.bbox[3] - t.bbox[1]) * (t.bbox[2] - t.bbox[0]))
         edges = sorted({round(r.bbox[1], 1) for r in table.rows} | {round(r.bbox[3], 1) for r in table.rows})
         for top, bottom in zip(edges, edges[1:]):
-            in_row = [w for w in words if w["top"] >= top - 1 and w["bottom"] <= bottom + 1]
+            # ใช้กึ่งกลางแนวตั้งของคำ — ค่าบางคอลัมน์วางต่ำกว่าเส้นฐานเล็กน้อยจนขอบล่างเกินเส้นตาราง
+            in_row = [w for w in words if top - 1 <= (w["top"] + w["bottom"]) / 2 <= bottom + 1]
             station = next((w["text"].rstrip("*") for w in in_row if STATION_RE.match(w["text"])), None)
             if not station:
                 continue
@@ -155,7 +174,13 @@ def extract_results(pdf: pdfplumber.PDF) -> dict[str, dict[str, dict[int, str]]]
                             )
                         values[num] = token
                         break
-            out.setdefault(name, {})[station] = {n: values.get(n, "-") for n, _, _ in bounds}
+            row = out.setdefault(name, {}).setdefault(station, {})
+            for n, _, _ in bounds:
+                new = values.get(n, "-")
+                if n in row and row[n] != new and "-" not in (row[n], new):
+                    raise SystemExit(f"ค่าชนกันที่ {name} {station} ครั้งที่ {n}: {row[n]} / {new}")
+                if n not in row or row[n] == "-":
+                    row[n] = new
     return out
 
 
@@ -238,6 +263,8 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("pdf", help="ไฟล์รายงาน PDF ฉบับล่าสุดของกรมควบคุมมลพิษ")
     ap.add_argument("--check", action="store_true", help="ตรวจเทียบกับ data.json เดิมอย่างเดียว ไม่เขียนไฟล์")
+    ap.add_argument("--keep-missing", action="store_true",
+                    help="ถ้ารายงานไม่มีตารางของบางพารามิเตอร์ ให้ใช้ค่าเดิมใน data.json แทน (รอบใหม่ = ไม่มีข้อมูล)")
     ap.add_argument("--source-name", help="ชื่อไฟล์รายงานที่จะบันทึกเป็นแหล่งที่มาใน data.json (ถ้าไม่ระบุ ใช้ชื่อไฟล์ PDF ที่ส่งเข้ามา)")
     args = ap.parse_args()
 
@@ -254,8 +281,13 @@ def main() -> int:
         round_dates = extract_round_dates(pdf)
 
     missing = [p for p, *_ in PARAMETERS if p not in results]
-    if missing:
-        print(f"อ่านตารางไม่ครบ ขาดพารามิเตอร์: {missing}", file=sys.stderr)
+    if "สารหนู" in missing:
+        print("อ่านตารางสารหนูไม่ได้ — ตรวจรูปแบบ PDF", file=sys.stderr)
+        return 1
+    if missing and not args.keep_missing:
+        print(f"อ่านตารางไม่ครบ ขาดพารามิเตอร์: {missing}\n"
+              "ถ้ารายงานฉบับนี้ไม่มีตารางนั้นจริง ให้รันซ้ำพร้อม --keep-missing "
+              "(ใช้ค่าเดิมใน data.json และบันทึกรอบใหม่เป็นไม่มีข้อมูล)", file=sys.stderr)
         return 1
 
     total_rounds = max(max(v) for v in results["สารหนู"].values())
@@ -265,6 +297,16 @@ def main() -> int:
     old_index = {
         (r["siteId"], r["parameter"], r["round"]): r for r in data["waterResults"]
     }
+
+    # พารามิเตอร์ที่รายงานฉบับนี้ไม่มีตาราง: ดึงค่าเดิมจาก data.json
+    for pdf_name in missing:
+        name = next(p[1] for p in PARAMETERS if p[0] == pdf_name)
+        kept: dict[str, dict[int, str]] = {}
+        for r in data["waterResults"]:
+            if r["parameter"] == name:
+                kept.setdefault(r["siteId"], {})[r["round"]] = r["raw"] or "-"
+        results[pdf_name] = kept
+        print(f"หมายเหตุ: รายงานไม่มีตาราง{name} — ใช้ค่าเดิมใน data.json (รอบที่ไม่มีค่าเดิม = ไม่มีข้อมูล)")
 
     old_points = {p["id"]: p for p in data["waterPoints"]}
     points = []
@@ -334,7 +376,9 @@ def main() -> int:
 
     data["meta"] = {
         "title": "แผนที่ผลตรวจวัดคุณภาพน้ำแม่น้ำกกและจุดตรวจโลหะ จ.เชียงราย",
-        "generatedFrom": [source_name, "ผลโลหะ จ.เชียงราย.xlsx"],
+        "generatedFrom": [source_name, "ผลโลหะ จ.เชียงราย.xlsx"] + (
+            [data["surveyMeta"]["source"]] if data.get("surveyMeta", {}).get("source") else []
+        ),
         "note": (
             f"ผลตรวจคุณภาพน้ำครั้งที่ 1-{total_rounds} และพิกัดจุดตรวจวัด {len(points)} จุด "
             f"ดึงจากรายงานกรมควบคุมมลพิษครั้งที่ {total_rounds} (ภาคผนวก ข และ ค)"

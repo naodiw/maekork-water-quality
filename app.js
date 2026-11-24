@@ -94,7 +94,7 @@ const riverColors = {
 
 async function init() {
   const [data, rivers] = await Promise.all([
-    fetch("data.json?v=26").then((res) => res.json()),
+    fetch("data.json?v=27").then((res) => res.json()),
     fetch("rivers.geojson?v=7").then((res) => res.json()).catch(() => null),
   ]);
   state.data = data;
