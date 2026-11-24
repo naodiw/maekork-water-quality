@@ -901,28 +901,6 @@ function escapeHtml(value) {
   });
 })();
 
-// On mobile, relocate the round slider into the map stage as a floating bottom bar
-(() => {
-  const slider = document.querySelector(".round-control");
-  const mapStage = document.querySelector(".map-stage");
-  // On desktop the slider lives inside the คพ. group, right under the คพ. show/hide button
-  const filtersSection = document.querySelector(".filter-group-pcd");
-  if (!slider || !mapStage || !filtersSection) return;
-
-  function relocate() {
-    const mobile = window.innerWidth <= 980;
-    if (mobile && slider.parentElement !== mapStage) {
-      mapStage.appendChild(slider);
-      slider.classList.add("round-control-floating");
-    } else if (!mobile && slider.parentElement !== filtersSection) {
-      filtersSection.appendChild(slider);
-      slider.classList.remove("round-control-floating");
-    }
-  }
-  relocate();
-  window.addEventListener("resize", relocate);
-})();
-
 init().catch((error) => {
   console.error(error);
   els.selectedTitle.textContent = text.loadFailed;
