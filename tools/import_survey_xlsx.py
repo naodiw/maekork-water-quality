@@ -5,7 +5,7 @@
 เขียนทับเฉพาะคีย์ surveyMeta, surveySites, surveyResults — ข้อมูลส่วนอื่นไม่ถูกแตะ
 
 วิธีใช้:
-    python tools/import_survey_xlsx.py "ผลการตรวจ.xlsx" --label "ผลตรวจ ศวภ.น. กวภ. กรอ. ส.ค. 2569"
+    python tools/import_survey_xlsx.py "ผลการตรวจ.xlsx" --label "ผลตรวจ ศวภ.น. กวภ. กรอ. เมื่อ ส.ค. 2569"
     python tools/import_survey_xlsx.py "ผลการตรวจ.xlsx" --check     # ตรวจอย่างเดียว ไม่เขียนไฟล์
 
 ต้องมี openpyxl:  pip install openpyxl
@@ -383,7 +383,7 @@ def import_workbook(path: Path, label: str, source_name: str, existing_factories
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("xlsx", type=Path)
-    ap.add_argument("--label", default="ผลตรวจ ศวภ.น. กวภ. กรอ. ส.ค. 2569", help="ชื่อชุดข้อมูลที่แสดงบนเว็บ")
+    ap.add_argument("--label", default="ผลตรวจ ศวภ.น. กวภ. กรอ. เมื่อ ส.ค. 2569", help="ชื่อชุดข้อมูลที่แสดงบนเว็บ")
     ap.add_argument("--source-name", default=None, help="ชื่อไฟล์ต้นทางที่บันทึกใน data.json")
     ap.add_argument("--check", action="store_true", help="แสดงสรุปอย่างเดียว ไม่เขียน data.json")
     args = ap.parse_args()
