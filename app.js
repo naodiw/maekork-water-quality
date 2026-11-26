@@ -111,7 +111,7 @@ const riverColors = {
 
 async function init() {
   const [data, rivers] = await Promise.all([
-    fetch("data.json?v=29").then((res) => res.json()),
+    fetch("data.json?v=30").then((res) => res.json()),
     fetch("rivers.geojson?v=7").then((res) => res.json()).catch(() => null),
   ]);
   state.data = data;
@@ -601,7 +601,7 @@ function renderSedimentSelection(site) {
     <p class="site-note">${escapeHtml(std.safeText || "")}<br />${escapeHtml(std.severeText || "")}</p>
     <h4 class="survey-heading">ผลย้อนหลัง ${escapeHtml(meta.frequency || "")}</h4>
     <div class="result-grid sediment-history">${history || "<span>ไม่มีข้อมูล</span><strong>-</strong>"}</div>
-    ${meta.sourceFile ? `<p class="site-note">ที่มา: <a href="${escapeHtml(meta.sourceFile)}" target="_blank" rel="noopener">สไลด์สรุปผลตะกอนดินครั้งที่ 13 สสภ.1 (เชียงใหม่) [PDF]</a> หน้า 13</p>` : ""}
+    ${meta.sourceFile ? `<p class="site-note">ที่มา: <a href="${escapeHtml(meta.sourceFile)}" target="_blank" rel="noopener">${escapeHtml(meta.sourceLabel || "แหล่งข้อมูล")} [PDF]</a>${meta.sourcePage ? ` ${escapeHtml(meta.sourcePage)}` : ""}</p>` : ""}
   `;
 }
 

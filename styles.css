@@ -1407,3 +1407,8 @@ input {
   #sedimentRoundSlider::-webkit-slider-thumb { width: 24px; height: 24px; }
   #sedimentRoundSlider::-moz-range-thumb { width: 24px; height: 24px; }
 }
+
+/* หัวข้อย่อยที่ตามหลังแถวตัวเลข ต้องเว้นระยะจากการ์ดสถิติ */
+.stat-row + .agency-subhead {
+  margin-top: 20px !important;
+}

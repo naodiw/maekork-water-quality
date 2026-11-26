@@ -73688,56 +73688,56 @@
   "sedimentMeta": {
     "label": "ตะกอนดิน คพ.",
     "title": "สารหนูในตะกอนดินท้องน้ำ (กรมควบคุมมลพิษ)",
-    "source": "สไลด์ \"สถานการณ์การติดตามและตรวจวิเคราะห์คุณภาพน้ำผิวดินแม่น้ำกก แม่น้ำสาย แม่น้ำรวก แม่น้ำโขง คุณภาพน้ำผิวดิน (ครั้งที่ 24) และตะกอนดิน (ครั้งที่ 13)\" สำนักงานสิ่งแวดล้อมและควบคุมมลพิษที่ 1 (เชียงใหม่) กรมควบคุมมลพิษ · ตารางหน้า 13 (ตรวจทานกับแผนที่หน้า 10 และกราฟหน้า 11-12)",
-    "frequency": "ปี 2568 เดือนละ 1 ครั้ง · ปี 2569 ทุก 2 เดือน",
+    "source": "รายงานสถานการณ์คุณภาพตะกอนดินในแม่น้ำกกและลำน้ำสาขา แม่น้ำสาย แม่น้ำรวก แม่น้ำโขง (ภาคเหนือ) ครั้งที่ 13 (8-11 กันยายน 2569) กรมควบคุมมลพิษ · ข้อมูล ณ วันที่ 15 ตุลาคม 2569 · ภาคผนวก ข หน้า 24",
+    "frequency": "ปี 2568 เดือนละ 1 ครั้ง · ตั้งแต่ พ.ย. 2568 ทุก 2 เดือน",
     "rounds": [
       {
         "round": 1,
-        "dateLabel": "มี.ค. 68"
+        "dateLabel": "19-24 มี.ค. และ 9 เม.ย. 68"
       },
       {
         "round": 2,
-        "dateLabel": "เม.ย. 68"
+        "dateLabel": "21-24 เม.ย. และ 29 เม.ย.-2 พ.ค. 68"
       },
       {
         "round": 3,
-        "dateLabel": "ปลาย พ.ค. 68"
+        "dateLabel": "26-30 พ.ค. 68"
       },
       {
         "round": 4,
-        "dateLabel": "ปลาย มิ.ย. 68"
+        "dateLabel": "23-27 มิ.ย. 68"
       },
       {
         "round": 5,
-        "dateLabel": "ปลาย ก.ค. 68"
+        "dateLabel": "21-25 ก.ค. 68"
       },
       {
         "round": 6,
-        "dateLabel": "ปลาย ส.ค. 68"
+        "dateLabel": "18-22 ส.ค. 68"
       },
       {
         "round": 7,
-        "dateLabel": "ปลาย ก.ย. 68"
+        "dateLabel": "22-26 ก.ย. 68"
       },
       {
         "round": 8,
-        "dateLabel": "พ.ย. 68"
+        "dateLabel": "11-14 พ.ย. 68"
       },
       {
         "round": 9,
-        "dateLabel": "ม.ค. 69"
+        "dateLabel": "6-9 ม.ค. 69"
       },
       {
         "round": 10,
-        "dateLabel": "มี.ค. 69"
+        "dateLabel": "8-11 มี.ค. 69"
       },
       {
         "round": 11,
-        "dateLabel": "พ.ค. 69"
+        "dateLabel": "18-23 พ.ค. 69"
       },
       {
         "round": 12,
-        "dateLabel": "ก.ค. 69"
+        "dateLabel": "7-10 ก.ค. 69"
       },
       {
         "round": 13,
@@ -73761,9 +73761,11 @@
       "KK14",
       "SU01"
     ],
-    "note": "จุดที่เลิกเก็บตัวอย่างแล้ว (KK03 KK04 KK06 KK08 KK13 KK14 SU01) มีผลในข้อมูลแต่ไม่แสดงบนแผนที่เพราะรายงานไม่ได้ให้พิกัด · KK01 ย้ายจุดเก็บจากสะพานท่าตอนไปชายแดนไทย-พม่าตั้งแต่ พ.ค. 2569 · ตาราง PPT หน้า 11 เขียนค่า KK09 ครั้งที่ 13 เป็น <0.5 แต่ตารางหน้า 13 และแผนที่หน้า 10 เป็น <5.0 จึงใช้ <5.0",
-    "sourceFile": "sources/pcd-kok-water24-sediment13-slides.pdf",
-    "transcription": "ตารางในสไลด์เป็นภาพ จึงถอดค่าด้วยการอ่านภาพ 2 รอบแยกกันโดยอิสระ ผลตรงกันครบ 364 ช่อง"
+    "note": "จุดที่เลิกเก็บตัวอย่างแล้ว (KK03 KK04 KK06 KK08 KK13 KK14 SU01) มีผลในข้อมูลแต่ไม่แสดงบนแผนที่เพราะรายงานไม่ได้ให้พิกัด · KK01 ย้ายจุดเก็บจากสะพานท่าตอนไปชายแดนไทย-พม่าตั้งแต่ พ.ค. 2569 · เกณฑ์อันตรายรุนแรงใช้ \"มากกว่า 33 mg/kg\" ตามนิยามในภาคผนวก ก (ตารางภาคผนวก ข เขียน ≥33 แต่บทสรุปนับ KK01 ที่ 33 เป็นระดับเริ่มเป็นอันตราย) · ค่าครั้งที่ 2-3 ของ KO01 LA01 SU01 NK02 NK03 ในสไลด์สรุปผลวางผิดแถว/ตกหล่น ใช้ค่าจากรายงานฉบับนี้",
+    "sourceFile": "sources/pcd-kok-sediment13-report.pdf",
+    "transcription": "ดึงจากข้อความในไฟล์ PDF ด้วยสคริปต์ และตรวจกับตารางที่ 3-6 ในเนื้อรายงานแล้ว ตรงกันทุกค่า",
+    "sourceLabel": "รายงานสถานการณ์คุณภาพตะกอนดิน ครั้งที่ 13 กรมควบคุมมลพิษ",
+    "sourcePage": "ภาคผนวก ข หน้า 24"
   },
   "sedimentResults": [
     {
@@ -75619,7 +75621,7 @@
       "parameter": "สารหนู",
       "symbol": "As",
       "round": 13,
-      "raw": "8",
+      "raw": "8.0",
       "operator": "=",
       "value": 8.0,
       "unit": "mg/kg",
@@ -76070,11 +76072,11 @@
       "parameter": "สารหนู",
       "symbol": "As",
       "round": 2,
-      "raw": "-",
-      "operator": null,
-      "value": null,
+      "raw": "21",
+      "operator": "=",
+      "value": 21.0,
       "unit": "mg/kg",
-      "level": "no_data"
+      "level": "caution"
     },
     {
       "siteId": "KO01",
@@ -76213,11 +76215,11 @@
       "parameter": "สารหนู",
       "symbol": "As",
       "round": 2,
-      "raw": "-",
-      "operator": null,
-      "value": null,
+      "raw": "13",
+      "operator": "=",
+      "value": 13.0,
       "unit": "mg/kg",
-      "level": "no_data"
+      "level": "caution"
     },
     {
       "siteId": "LA01",
@@ -76356,11 +76358,11 @@
       "parameter": "สารหนู",
       "symbol": "As",
       "round": 2,
-      "raw": "-",
-      "operator": null,
-      "value": null,
+      "raw": "9.1",
+      "operator": "=",
+      "value": 9.1,
       "unit": "mg/kg",
-      "level": "no_data"
+      "level": "safe"
     },
     {
       "siteId": "SU01",
@@ -77357,22 +77359,22 @@
       "parameter": "สารหนู",
       "symbol": "As",
       "round": 2,
-      "raw": "-",
-      "operator": null,
-      "value": null,
+      "raw": "16",
+      "operator": "=",
+      "value": 16.0,
       "unit": "mg/kg",
-      "level": "no_data"
+      "level": "caution"
     },
     {
       "siteId": "NK02",
       "parameter": "สารหนู",
       "symbol": "As",
       "round": 3,
-      "raw": "94",
-      "operator": "=",
-      "value": 94.0,
+      "raw": "-",
+      "operator": null,
+      "value": null,
       "unit": "mg/kg",
-      "level": "severe"
+      "level": "no_data"
     },
     {
       "siteId": "NK02",
@@ -77500,22 +77502,22 @@
       "parameter": "สารหนู",
       "symbol": "As",
       "round": 2,
-      "raw": "-",
-      "operator": null,
-      "value": null,
+      "raw": "31",
+      "operator": "=",
+      "value": 31.0,
       "unit": "mg/kg",
-      "level": "no_data"
+      "level": "caution"
     },
     {
       "siteId": "NK03",
       "parameter": "สารหนู",
       "symbol": "As",
       "round": 3,
-      "raw": "-",
-      "operator": null,
-      "value": null,
+      "raw": "94",
+      "operator": "=",
+      "value": 94.0,
       "unit": "mg/kg",
-      "level": "no_data"
+      "level": "severe"
     },
     {
       "siteId": "NK03",
