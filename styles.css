@@ -1289,3 +1289,121 @@ input {
   font-size: 0.85rem;
   font-weight: 700;
 }
+
+/* ===== ตะกอนดิน คพ. (สารหนูในตะกอนดินท้องน้ำ) ===== */
+:root {
+  --sediment: #8b5e34;
+  --sev-safe: #1f7a5a;
+  --sev-caution: #c97a15;
+  --sev-severe: #8f1d1d;
+}
+
+.filter-group-sediment { --group-accent: var(--sediment); }
+
+#sedimentRoundSlider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  background: linear-gradient(to right, var(--sediment) 0%, var(--sediment) var(--slider-pct, 100%), var(--line) var(--slider-pct, 100%), var(--line) 100%);
+  outline: none;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  margin: 4px 0;
+}
+
+#sedimentRoundSlider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  border: 3px solid var(--sediment);
+  cursor: pointer;
+}
+
+#sedimentRoundSlider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  border: 3px solid var(--sediment);
+  cursor: pointer;
+}
+
+.sediment-round-control .round-header strong {
+  color: var(--sediment);
+}
+
+.sediment-scale {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  color: var(--muted);
+  font-size: 0.76rem;
+}
+
+.sediment-scale span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.sediment-legend {
+  display: inline-block;
+  width: 12px;
+  height: 10px;
+  border-radius: 3px;
+  border: 1.5px solid var(--sediment);
+}
+
+.sediment-icon {
+  background: none;
+  border: 0;
+}
+
+.sediment-badge {
+  display: inline-block;
+  min-width: 26px;
+  padding: 2px 5px;
+  border: 2px solid #fff;
+  outline: 1.5px solid var(--sediment);
+  border-radius: 5px;
+  color: #fff;
+  font: 700 11px/1.2 Tahoma, "Noto Sans Thai", Arial, sans-serif;
+  text-align: center;
+  white-space: nowrap;
+  box-shadow: 0 1px 4px rgba(23, 32, 42, 0.35);
+  cursor: pointer;
+}
+
+.sediment-safe { background: var(--sev-safe); }
+.sediment-caution { background: var(--sev-caution); }
+.sediment-severe { background: var(--sev-severe); }
+.sediment-no_data { background: #9aa3b2; }
+
+.status-safe { background: var(--sev-safe); }
+.status-caution { background: var(--sev-caution); }
+.status-severe { background: var(--sev-severe); }
+
+.sediment-source-badge {
+  background: #f5eee6;
+  color: var(--sediment);
+}
+
+.sediment-history {
+  font-size: 0.84rem;
+}
+
+.sediment-history .is-current {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+@media (hover: none) and (pointer: coarse) {
+  #sedimentRoundSlider::-webkit-slider-thumb { width: 24px; height: 24px; }
+  #sedimentRoundSlider::-moz-range-thumb { width: 24px; height: 24px; }
+}

@@ -7,7 +7,9 @@ const state = {
   factoryFilter: "none",
   showSurvey: true,
   showPcd: true,
+  showSediment: false,
   round: null,
+  sedimentRound: null,
   riversGeojson: null,
   exceedFlows: [],
   firstFitDone: false,
@@ -38,6 +40,12 @@ const els = {
   pcdFilterButtons: document.querySelectorAll("[data-pcd-filter]"),
   surveyFilterLabel: document.querySelector("#surveyFilterLabel"),
   surveySourceNote: document.querySelector("#surveySourceNote"),
+  sedimentControl: document.querySelector(".filter-group-sediment"),
+  sedimentFilterButtons: document.querySelectorAll("[data-sediment-filter]"),
+  sedimentRoundSlider: document.querySelector("#sedimentRoundSlider"),
+  sedimentRoundNumber: document.querySelector("#sedimentRoundNumber"),
+  sedimentRoundDate: document.querySelector("#sedimentRoundDate"),
+  sedimentRoundMaxTick: document.querySelector("#sedimentRoundMaxTick"),
 };
 
 const statusText = {
@@ -49,6 +57,10 @@ const statusText = {
   no_data: "\u0e44\u0e21\u0e48\u0e21\u0e35\u0e02\u0e49\u0e2d\u0e21\u0e39\u0e25",
   standard_not_available: "\u0e44\u0e21\u0e48\u0e21\u0e35\u0e04\u0e48\u0e32\u0e21\u0e32\u0e15\u0e23\u0e10\u0e32\u0e19",
   inconclusive: "สรุปไม่ได้",
+  // ระดับสารหนูในตะกอนดิน (เกณฑ์ คพ.)
+  safe: "ปลอดภัย",
+  caution: "เริ่มเป็นอันตราย",
+  severe: "อันตรายรุนแรง",
 };
 
 // Survey (ผลตรวจ ศวภ.น. กวภ. กรอ.) site types
@@ -84,6 +96,9 @@ const markerColors = {
   no_standard: "#697386",
   no_data: "#697386",
   inconclusive: "#697386",
+  safe: "#1f7a5a",
+  caution: "#c97a15",
+  severe: "#8f1d1d",
 };
 
 const riverColors = {
@@ -96,12 +111,13 @@ const riverColors = {
 
 async function init() {
   const [data, rivers] = await Promise.all([
-    fetch("data.json?v=27").then((res) => res.json()),
+    fetch("data.json?v=28").then((res) => res.json()),
     fetch("rivers.geojson?v=7").then((res) => res.json()).catch(() => null),
   ]);
   state.data = data;
   setupMap();
   setupSurveyControls();
+  setupSedimentControls();
   setupFilters();
   bindEvents();
   render();
@@ -459,6 +475,24 @@ function bindEvents() {
     });
   });
 
+  els.sedimentFilterButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      state.showSediment = button.dataset.sedimentFilter === "show";
+      els.sedimentFilterButtons.forEach((b) => {
+        const active = (b.dataset.sedimentFilter === "show") === state.showSediment;
+        b.classList.toggle("is-active", active);
+        b.setAttribute("aria-checked", active ? "true" : "false");
+      });
+      render();
+    });
+  });
+
+  els.sedimentRoundSlider?.addEventListener("input", () => {
+    state.sedimentRound = Number(els.sedimentRoundSlider.value);
+    updateSedimentRoundLabel();
+    render();
+  });
+
   els.pcdFilterButtons.forEach((button) => {
     button.addEventListener("click", () => {
       state.showPcd = button.dataset.pcdFilter === "show";
@@ -489,6 +523,85 @@ function setupSurveyControls() {
     const c = meta.counts || {};
     els.surveySourceNote.innerHTML = `<strong>${escapeHtml(meta.label)}</strong> (${escapeHtml(formatThaiDate(meta.dateFrom))} – ${escapeHtml(formatThaiDate(meta.dateTo))}) · น้ำ ${c.water ?? "-"} จุด · โรงงาน ${c.factory ?? "-"} แห่ง · ดินตะกอน ${c.soil ?? "-"} จุด`;
   }
+}
+
+// ----- ตะกอนดิน คพ. (สารหนูในตะกอนดินท้องน้ำ) -----
+
+function getSedimentRows(siteId) {
+  return (state.data.sedimentResults || []).filter((r) => r.siteId === siteId);
+}
+
+function getSedimentRow(siteId, round = state.sedimentRound) {
+  return (state.data.sedimentResults || []).find((r) => r.siteId === siteId && r.round === round) || null;
+}
+
+function getSedimentRoundInfo(round) {
+  return state.data.sedimentMeta?.rounds?.find((r) => r.round === round) || null;
+}
+
+function setupSedimentControls() {
+  const meta = state.data.sedimentMeta;
+  if (!meta || !els.sedimentRoundSlider) {
+    if (els.sedimentControl) els.sedimentControl.hidden = true;
+    return;
+  }
+  const rounds = meta.rounds.map((r) => r.round);
+  const maxR = Math.max(...rounds);
+  els.sedimentRoundSlider.min = String(Math.min(...rounds));
+  els.sedimentRoundSlider.max = String(maxR);
+  els.sedimentRoundMaxTick.textContent = String(maxR);
+  if (!state.sedimentRound) state.sedimentRound = maxR;
+  els.sedimentRoundSlider.value = String(state.sedimentRound);
+  updateSedimentRoundLabel();
+}
+
+function updateSedimentRoundLabel() {
+  els.sedimentRoundNumber.textContent = String(state.sedimentRound);
+  els.sedimentRoundDate.textContent = getSedimentRoundInfo(state.sedimentRound)?.dateLabel || "—";
+  const min = Number(els.sedimentRoundSlider.min);
+  const max = Number(els.sedimentRoundSlider.max);
+  const pct = ((state.sedimentRound - min) / Math.max(1, max - min)) * 100;
+  els.sedimentRoundSlider.style.setProperty("--slider-pct", `${pct}%`);
+}
+
+function sedimentIcon(row) {
+  const level = row?.level || "no_data";
+  const label = row && row.raw !== "-" ? row.raw : "–";
+  // Badge sits up-right of the คพ. water dot at the same station so both stay clickable
+  return L.divIcon({
+    className: "sediment-icon",
+    html: `<span class="sediment-badge sediment-${escapeHtml(level)}">${escapeHtml(label)}</span>`,
+    iconSize: null,
+    iconAnchor: [-7, 26],
+    popupAnchor: [16, -24],
+  });
+}
+
+function renderSedimentSelection(site) {
+  const meta = state.data.sedimentMeta || {};
+  const std = meta.standards || {};
+  const row = getSedimentRow(site.id);
+  const info = getSedimentRoundInfo(state.sedimentRound);
+  const history = getSedimentRows(site.id)
+    .filter((r) => r.raw !== "-")
+    .map((r) => {
+      const d = getSedimentRoundInfo(r.round)?.dateLabel || "";
+      const current = r.round === state.sedimentRound ? ' class="is-current"' : "";
+      return `<span${current}>ครั้งที่ ${r.round} · ${escapeHtml(d)}</span><strong${current}>${escapeHtml(r.raw)} ${statusPillHtml(r.level)}</strong>`;
+    })
+    .join("");
+  els.selectedTitle.textContent = `${site.id} ตะกอนดิน`;
+  els.selectedBody.innerHTML = `
+    <p class="survey-badge sediment-source-badge">${escapeHtml(meta.title || "ตะกอนดิน คพ.")}</p>
+    <p>${escapeHtml(site.river)} · ${escapeHtml(site.location)}</p>
+    <p>ครั้งที่ ${state.sedimentRound}${info ? ` · ${escapeHtml(info.dateLabel)}` : ""}</p>
+    <div class="result-grid">
+      <span>สารหนู (mg/kg)</span><strong>${escapeHtml(row?.raw || "-")} ${row && row.raw !== "-" ? statusPillHtml(row.level) : ""}</strong>
+    </div>
+    <p class="site-note">${escapeHtml(std.safeText || "")}<br />${escapeHtml(std.severeText || "")}</p>
+    <h4 class="survey-heading">ผลย้อนหลัง ${escapeHtml(meta.frequency || "")}</h4>
+    <div class="result-grid sediment-history">${history || "<span>ไม่มีข้อมูล</span><strong>-</strong>"}</div>
+  `;
 }
 
 function formatThaiDate(iso) {
@@ -544,6 +657,12 @@ function getFilteredSites() {
     if (state.factoryFilter === "sand" && !isSandFactory(site)) continue;
     sites.push({ type: "kokFactory", ...site });
   }
+  if (state.showSediment && state.data.sedimentResults) {
+    const withData = new Set(state.data.sedimentResults.map((r) => r.siteId));
+    for (const site of state.data.waterPoints) {
+      if (withData.has(site.id)) sites.push({ type: "sediment", ...site });
+    }
+  }
   if (state.showSurvey) {
     for (const site of getSurveySites()) {
       if (site.kind === "factory" && site.linkedFactoryId) continue; // shown on the existing factory marker
@@ -570,6 +689,8 @@ function renderMarkers(sites) {
       marker = L.marker([site.latitude, site.longitude], { icon: surveyWaterIcon(color) });
     } else if (site.type === "surveySoil") {
       marker = L.marker([site.latitude, site.longitude], { icon: surveySoilIcon() });
+    } else if (site.type === "sediment") {
+      marker = L.marker([site.latitude, site.longitude], { icon: sedimentIcon(getSedimentRow(site.id)) });
     } else {
       marker = L.circleMarker([site.latitude, site.longitude], {
         radius: 8,
@@ -646,6 +767,11 @@ function renderList(sites) {
       if (site.type === "factory") { title = site.company; base = site.samplePoint; }
       else if (site.type === "kokFactory") { title = site.name; base = `${site.district} · ห่าง ${(site.distanceM / 1000).toFixed(1)} กม.`; }
       else if (SURVEY_TYPES.has(site.type)) { title = site.name; base = `${surveyKindLabel(site)} · ${site.dateLabel}`; }
+      else if (site.type === "sediment") {
+        const row = getSedimentRow(site.id);
+        title = `${site.id} ตะกอนดิน`;
+        base = `สารหนู ${row?.raw || "-"} mg/kg · ครั้งที่ ${state.sedimentRound}`;
+      }
       else { title = `${site.id} ${site.river}`; base = site.location; }
       const status = statusText[getSiteMarkerStatus(site)] || "";
       const detail = status ? `${base} · ${status}` : base;
@@ -672,6 +798,8 @@ function selectSite(site, panMap) {
     renderKokFactorySelection(site);
   } else if (SURVEY_TYPES.has(site.type)) {
     renderSurveySelection(site);
+  } else if (site.type === "sediment") {
+    renderSedimentSelection(site);
   } else {
     renderWaterSelection(site);
   }
@@ -816,6 +944,13 @@ function buildPopup(site) {
       <p>วันเก็บตัวอย่าง ${escapeHtml(site.dateLabel)}</p>
       ${statusLine}`;
   }
+  if (site.type === "sediment") {
+    const row = getSedimentRow(site.id);
+    const info = getSedimentRoundInfo(state.sedimentRound);
+    return `<p class="popup-title">${escapeHtml(site.id)} ตะกอนดิน</p>
+      <p>สารหนู ${escapeHtml(row?.raw || "-")} mg/kg · ครั้งที่ ${state.sedimentRound}${info ? ` (${escapeHtml(info.dateLabel)})` : ""}</p>
+      ${statusLine}`;
+  }
   const round = getSelectedRoundForSite(site.id);
   const roundInfo = state.data.samplingRounds.find((r) => r.round === round);
   const dateLine = roundInfo?.dateLabel ? `<p>วันเก็บตัวอย่าง ${escapeHtml(roundInfo.dateLabel)}</p>` : "";
@@ -846,6 +981,10 @@ function getSiteMarkerStatus(site) {
   }
   if (site.type === "surveySoil") {
     return "reported";
+  }
+  if (site.type === "sediment") {
+    const row = getSedimentRow(site.id);
+    return row && row.raw !== "-" ? row.level : "no_data";
   }
   if (site.type === "surveyFactory") {
     return site.overallStatus === "exceed" ? "fail" : site.overallStatus === "pass" ? "pass" : "reported";
